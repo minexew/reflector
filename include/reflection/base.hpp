@@ -61,19 +61,8 @@ static_assert(sizeof(Tag_t) == 1, "uint8_t must be 8 bits");
 struct UUID_t {
     uint32_t uuid[4];
 
-    bool operator < (const UUID_t& other) const {
-        return uuid[0] < other.uuid[0]
-            || uuid[1] < other.uuid[1]
-            || uuid[2] < other.uuid[2]
-            || uuid[3] < other.uuid[3];
-    }
-
-    bool operator == (const UUID_t& other) const {
-        return uuid[0] == other.uuid[0]
-            && uuid[1] == other.uuid[1]
-            && uuid[2] == other.uuid[2]
-            && uuid[3] == other.uuid[3];
-    }
+    bool operator < (const UUID_t& other) const { return memcmp(uuid, other.uuid, sizeof(uuid)) < 0; }
+    bool operator == (const UUID_t& other) const { return memcmp(uuid, other.uuid, sizeof(uuid)) == 0; }
 
     int toString(char buffer[37]) const {
         return sprintf(buffer, "%08x-%04x-%04x-%04x-%04x%08x", uuid[0], uuid[1] >> 16, uuid[1] & 0xffff, uuid[2] >> 16, uuid[2] & 0xffff, uuid[3]);
