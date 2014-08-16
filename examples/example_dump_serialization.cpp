@@ -87,8 +87,15 @@ bool str_ends_with(const char* str, const char* suffix) {
     return 0 == strncmp(str + str_len - suffix_len, suffix, suffix_len);
 }
 
+int usage() {
+    fprintf(stderr, "usage: example_dump_serialization <filename>.class\n");
+    fprintf(stderr, "\tOR example_dump_serialization <filename>.class_schema\n");
+    return -1;
+}
+
 int main(int argc, char** argv) {
-    assert(argc >= 2);
+    if (argc < 2)
+        return usage();
 
     const char* fileName = argv[1];
     FILE* file = fopen(fileName, "rb");
@@ -97,10 +104,16 @@ int main(int argc, char** argv) {
     MyReader rd(file);
     MySchemaProvider sp;
 
-    if (str_ends_with(fileName, ".class"))
+    if (str_ends_with(fileName, ".class")) {
         reflection::dumpValue(reflection::TAG_CLASS, &rd, &rd, &sp);
-    else if (str_ends_with(fileName, ".class_schema"))
+        printf("\n");
+    }
+    else if (str_ends_with(fileName, ".class_schema")) {
         reflection::dumpValue(reflection::TAG_CLASS_SCHEMA, &rd, &rd, &sp);
+        printf("\n");
+    }
+    else
+        return usage();
 
     fclose(file);
 }

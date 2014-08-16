@@ -31,7 +31,8 @@
 
 #define REFL_FIELD(field_, ...) \
             ::reflection::makeField(#field_, &::reflection::fieldGetter<ThisClass, decltype(field_), &ThisClass::field_>,\
-            ::reflection::reflectionForType2<decltype(field_)>(), ::reflection::FIELD_STATE, ##__VA_ARGS__),\
+            ::reflection::reflectionForType2<decltype(field_)>(),\
+            ::reflection::FIELD_STATE, ##__VA_ARGS__),\
 
 #define REFL_DEPENDENCY(field_, ...) \
             ::reflection::makeDependency(#field_, &::reflection::fieldGetter<ThisClass, decltype(field_), &ThisClass::field_>,\

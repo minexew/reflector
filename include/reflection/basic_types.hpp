@@ -108,7 +108,11 @@ public:
 
     static bool fromString(IErrorHandler* err, const char* str, size_t strLen, Int_t& value_out) {
         if (Limits::is_signed) {
-            long asLong = strtol(str, nullptr, 0);
+            char* end;
+            long asLong = strtol(str, &end, 0);
+
+            if (*end != 0)
+                return err->error("IntegerFormatError", "Specified value is not a valid integer."), false;
 
             if (asLong < (long) Limits::min() || asLong > (long) Limits::max())
                 return err->error("IntegerOverflow", "Value is outside the limit for this type."), false;
@@ -117,7 +121,11 @@ public:
             return true;
         }
         else {
-            unsigned long asULong = strtoul(str, nullptr, 0);
+            char* end;
+            unsigned long asULong = strtoul(str, &end, 0);
+
+            if (*end != 0)
+                return err->error("IntegerFormatError", "Specified value is not a valid integer."), false;
 
             if (asULong < (unsigned long) Limits::min() || asULong > (unsigned long) Limits::max())
                 return err->error("IntegerOverflow", "Value is outside the limit for this type."), false;
@@ -189,8 +197,8 @@ DEFINE_INTEGRAL_REFLECTION(uint16_t)
 DEFINE_INTEGRAL_REFLECTION(int16_t)
 DEFINE_INTEGRAL_REFLECTION(uint32_t)
 DEFINE_INTEGRAL_REFLECTION(int32_t)
-//DEFINE_INTEGRAL_REFLECTION(uint64_t)
-//DEFINE_INTEGRAL_REFLECTION(int64_t)
+DEFINE_INTEGRAL_REFLECTION(uint64_t)
+DEFINE_INTEGRAL_REFLECTION(int64_t)
 
 #ifndef REFLECTOR_AVOID_STL
 DEFINE_REFLECTION(StdStringReflection, std::string, StdStringReflectionTemplate)

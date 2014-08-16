@@ -54,15 +54,16 @@ public:
 
         bool deserialize(IReader* reader) { return refl->deserialize(err, reader, field); }
         bool isPolymorphic() const { return refl->isPolymorphic(); }
+        template <typename T> bool isType() const { return refl == reflectionForType2<T>(); }
         const char* staticTypeName() const { return refl->staticTypeName(); }
         bool toString(char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         bool toString(IErrorHandler* err, char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         const char* typeName() const { return refl->typeName(field); }
         bool serialize(IWriter* writer) const { return refl->serialize(err, writer, field); }
-        bool setFromString(IErrorHandler* err, const char* str) { refl->setFromString(err, str, strlen(str), field); }
+        bool setFromString(IErrorHandler* err, const char* str) { return refl->setFromString(err, str, strlen(str), field); }
 
 #ifndef REFLECTOR_AVOID_STL
-        void setFromString(const std::string& str) { refl->setFromString(err, str.c_str(), str.length(), field); }
+        bool setFromString(const std::string& str) { return refl->setFromString(err, str.c_str(), str.length(), field); }
 
         std::string toString() const {
             char* buf = nullptr;
@@ -102,7 +103,11 @@ public:
         }
     }
 
-    operator size_t () const {
+    size_t count() const {
+        return numFields;
+    }
+
+    operator size_t () const {  // deprecated
         return numFields;
     }
 
