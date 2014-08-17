@@ -77,25 +77,48 @@ template <> ITypeReflection* reflectionForType2<type_>() {\
     DECLARE_REFLECTION(name_, type_, template_)\
     PUBLISH_REFLECTION(name_, type_)
 
-#define DEFINE_INTEGRAL_REFLECTION(type_) DEFINE_REFLECTION(IntegralReflector_##type_, type_, IntegralReflectionTemplate<type_>)
+#define DEFINE_INTEGRAL_REFLECTION(type_, oneTokenType_) DEFINE_REFLECTION(IntegralReflector_##oneTokenType_, type_,\
+    IntegralReflectionTemplate<type_>)
 
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
+template <typename Bool_t>
 class BoolReflectionTemplate {
 public:
-    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, bool& value_out) {
-        char* endptr;
-        long asLong = strtol(str, &endptr, 0);
+    static int strcasecmp(const char* a, const char* b) {
+        int diff = tolower(*a) - tolower(*b);
 
-        if (endptr > str)
-            value_out = (asLong != 0);
-        else
-            value_out = (strcmp(str, "false") != 0 && strcmp(str, "False") != 0 && strcmp(str, "FALSE") != 0);
+        while (*a && *b && diff == 0) {
+            diff = tolower(*a) - tolower(*b);
+            a++;
+            b++;
+        }
 
+        return diff;
+    }
+
+    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, Bool_t& value_out) {
+        char* end;
+
+        if (strcasecmp(str, "true") == 0) {
+            value_out = true;
+            return true;
+        }
+        else if (strcasecmp(str, "false") == 0) {
+            value_out = false;
+            return true;
+        }
+
+        long asLong = strtol(str, &end, 0);
+
+        if (*end != 0)
+            return err->error("BooleanFormatError", "Specified value is not a valid boolean."), false;
+
+        value_out = (asLong != 0);
         return true;
     }
 
-    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const bool& value) {
+    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const Bool_t& value) {
         return value ? bufStringSet(err, buf, bufSize, "true", 4)
                 : bufStringSet(err, buf, bufSize, "false", 5);
     }
@@ -109,7 +132,7 @@ public:
     static bool fromString(IErrorHandler* err, const char* str, size_t strLen, Int_t& value_out) {
         if (Limits::is_signed) {
             char* end;
-            long asLong = strtol(str, &end, 0);
+            long asLong = strtol(str, &end, 0); // FIXME: actually check for overflow
 
             if (*end != 0)
                 return err->error("IntegerFormatError", "Specified value is not a valid integer."), false;
@@ -122,7 +145,7 @@ public:
         }
         else {
             char* end;
-            unsigned long asULong = strtoul(str, &end, 0);
+            unsigned long asULong = strtoul(str, &end, 0);  // FIXME: actually check for overflow
 
             if (*end != 0)
                 return err->error("IntegerFormatError", "Specified value is not a valid integer."), false;
@@ -144,39 +167,6 @@ public:
 };
 
 #ifndef REFLECTOR_AVOID_STL
-template <>
-class Serializer<std::string> {
-public:
-    enum { TAG = TAG_UTF8Z };
-
-    static bool serialize(IErrorHandler* err, IWriter* writer, const std::string& value) {
-        return writeTag(err, writer, TAG) && writer->write(err, value.c_str(), value.length() + 1);
-    }
-
-    static bool deserialize(IErrorHandler* err, IReader* reader, std::string& value_out) {
-        if (!checkTag(err, reader, TAG))
-            return false;
-
-        char next;
-
-        value_out = "";
-
-        do {
-            if (!reader->read(err, &next, sizeof(next)))
-                return false;
-
-            if (next == 0)
-                break;
-            else
-                value_out.append(1, next);
-        }
-        while (true);
-
-        return true;
-    }
-};
-
-
 class StdStringReflectionTemplate {
 public:
     static bool fromString(IErrorHandler* err, const char* str, size_t strLen, std::string& value_out) {
@@ -190,15 +180,21 @@ public:
 };
 #endif
 
-DEFINE_REFLECTION(BoolReflection, bool, BoolReflectionTemplate)
-DEFINE_INTEGRAL_REFLECTION(uint8_t)
-DEFINE_INTEGRAL_REFLECTION(int8_t)
-DEFINE_INTEGRAL_REFLECTION(uint16_t)
-DEFINE_INTEGRAL_REFLECTION(int16_t)
-DEFINE_INTEGRAL_REFLECTION(uint32_t)
-DEFINE_INTEGRAL_REFLECTION(int32_t)
-DEFINE_INTEGRAL_REFLECTION(uint64_t)
-DEFINE_INTEGRAL_REFLECTION(int64_t)
+DEFINE_REFLECTION(BoolReflection, bool, BoolReflectionTemplate<bool>)
+
+// TODO: rethink these
+DEFINE_INTEGRAL_REFLECTION(char,                char)
+DEFINE_INTEGRAL_REFLECTION(unsigned char,       byte)
+
+DEFINE_INTEGRAL_REFLECTION(short,               short)
+DEFINE_INTEGRAL_REFLECTION(int,                 int)
+DEFINE_INTEGRAL_REFLECTION(long,                long)
+DEFINE_INTEGRAL_REFLECTION(long long,           llong)
+
+DEFINE_INTEGRAL_REFLECTION(unsigned short,      ushort)
+DEFINE_INTEGRAL_REFLECTION(unsigned int,        uint)
+DEFINE_INTEGRAL_REFLECTION(unsigned long,       ulong)
+DEFINE_INTEGRAL_REFLECTION(unsigned long long,  ullong)
 
 #ifndef REFLECTOR_AVOID_STL
 DEFINE_REFLECTION(StdStringReflection, std::string, StdStringReflectionTemplate)

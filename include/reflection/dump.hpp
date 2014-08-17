@@ -48,20 +48,21 @@ static bool dumpTaggedValue(IReader* reader, ISeekBack* sb, ISchemaProvider* sp 
 
 static const char* getTypeName(Tag_t tag) {
     switch (tag) {
-        case TAG_VOID:      return "void";
-        case TAG_BOOL:      return "bool";
-        case TAG_UTF8Z:     return "utf8z";
-        case TAG_CLASS:     return "class";
+        case TAG_VOID:          return "void";
+        case TAG_BOOL:          return "bool";
+        case TAG_CHAR:          return "char";
+        case TAG_SMVINT:        return "int_smv";
+        case TAG_REAL32:        return "float";
+        case TAG_REAL64:        return "double";
+
+        case TAG_UTF8:          return "utf8";
+        case TAG_TYPED_ARRAY:   return "array_typed";
+        case TAG_FIXED_ARRAY:   return "array_fixed";
+
+        case TAG_CLASS:         return "class";
         case TAG_CLASS_SCHEMA:  return "class_schema";
-        case TAG_UINT8:     return "uint8";
-        case TAG_INT8:      return "int8";
-        case TAG_UINT16:    return "uint16";
-        case TAG_INT16:     return "int16";
-        case TAG_UINT32:    return "uint32";
-        case TAG_INT32:     return "int32";
-        case TAG_UINT64:    return "uint64";
-        case TAG_INT64:     return "int64";
-        default:            return nullptr;
+
+        default:                return nullptr;
     }
 }
 
@@ -280,17 +281,14 @@ static bool dumpTaggedValue(IReader* reader, ISeekBack* sb, ISchemaProvider* sp,
     switch (tag) {
         case TAG_VOID: printf("\"void\""); return true;
         case TAG_BOOL: sb->seekBack(1); return dumpDeserialized<bool>(reader);
+        case TAG_CHAR: sb->seekBack(1); return dumpDeserialized<unsigned char>(reader);
+        case TAG_SMVINT: sb->seekBack(1); return dumpDeserialized<int64_t>(reader);
+
+        case TAG_UTF8: sb->seekBack(1); return dumpString(reader);
+
         case TAG_CLASS: return dumpTaggedClass(reader, sb, sp, offset);
         case TAG_CLASS_SCHEMA: return dumpClassSchema(reader, offset);
-        case TAG_UTF8Z: sb->seekBack(1); return dumpString(reader);
-        case TAG_INT8: sb->seekBack(1); return dumpDeserialized<int8_t>(reader);
-        case TAG_UINT8: sb->seekBack(1); return dumpDeserialized<uint8_t>(reader);
-        case TAG_INT16: sb->seekBack(1); return dumpDeserialized<int16_t>(reader);
-        case TAG_UINT16: sb->seekBack(1); return dumpDeserialized<uint16_t>(reader);
-        case TAG_INT32: sb->seekBack(1); return dumpDeserialized<int32_t>(reader);
-        case TAG_UINT32: sb->seekBack(1); return dumpDeserialized<uint32_t>(reader);
-        //case TAG_INT64: reader->seekBack(1); return dumpDeserialized<int64_t>(reader);
-        //case TAG_UINT64: reader->seekBack(1); return dumpDeserialized<uint64_t>(reader);
+
         default: err->errorf("UnknownType", "Unrecognized tag %02X.\n", tag); return false;
     }
 
@@ -301,17 +299,14 @@ static bool dumpValue(Tag_t tag, IReader* reader, ISeekBack* sb, ISchemaProvider
     switch (tag) {
         case TAG_VOID: printf("\"void\""); return true;
         case TAG_BOOL: return dumpDeserialized<bool>(reader);
+        case TAG_CHAR: return dumpDeserialized<unsigned char>(reader);
+        case TAG_SMVINT: return dumpDeserialized<int64_t>(reader);
+
+        case TAG_UTF8: return dumpString(reader);
+
         case TAG_CLASS: return dumpClass(reader, sb, sp, offset);
         case TAG_CLASS_SCHEMA: return dumpClassSchema(reader, offset);
-        case TAG_UTF8Z: return dumpString(reader);
-        case TAG_INT8: return dumpDeserialized<int8_t>(reader);
-        case TAG_UINT8: return dumpDeserialized<uint8_t>(reader);
-        case TAG_INT16: return dumpDeserialized<int16_t>(reader);
-        case TAG_UINT16: return dumpDeserialized<uint16_t>(reader);
-        case TAG_INT32: return dumpDeserialized<int32_t>(reader);
-        case TAG_UINT32: return dumpDeserialized<uint32_t>(reader);
-        //case TAG_INT64: reader->seekBack(1); return dumpDeserialized<int64_t>(reader);
-        //case TAG_UINT64: reader->seekBack(1); return dumpDeserialized<uint64_t>(reader);
+
         default: err->errorf("UnknownType", "Unrecognized tag %02X.\n", tag); return false;
     }
 

@@ -24,7 +24,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#pragma once
+#ifndef REFLECTOR_HAVE_SERIALIZATION
+#define REFLECTOR_HAVE_SERIALIZATION
 
 #include "base.hpp"
 #include "bufstring.hpp"
@@ -33,20 +34,20 @@ namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 enum {
     TAG_NO_TYPE         = 0x00,
 
-    TAG_VOID            = 0x01,
-    TAG_BOOL            = 0x02,
-    TAG_UTF8Z           = 0x03,
-    TAG_CLASS           = 0x04,
-    TAG_CLASS_SCHEMA    = 0x05,
-
-    TAG_UINT8           = 0x10,
-    TAG_INT8            = 0x11,
-    TAG_UINT16          = 0x12,
-    TAG_INT16           = 0x13,
-    TAG_UINT32          = 0x14,
-    TAG_INT32           = 0x15,
-    TAG_UINT64          = 0x16,
-    TAG_INT64           = 0x17,
+    // single-value
+    TAG_VOID            = 0x01,     // void (no value)
+    TAG_BOOL            = 0x02,     // bool (1 byte)
+    TAG_CHAR            = 0x03,     // [un]signed char (1 byte)
+    TAG_SMVINT          = 0x04,     // sign+magnitude variable-length int
+    TAG_REAL32          = 0x05,     // float (4 bytes)
+    TAG_REAL64          = 0x06,     // float (8 bytes)
+    // array
+    TAG_UTF8            = 0x08,     // UTF-8 string (SmvInt length IN BYTES + utf8chars...)
+    TAG_TYPED_ARRAY     = 0x09,     // typed array (1 byte type tag + SmvInt length + items...)
+    TAG_FIXED_ARRAY     = 0x0A,     // fixed array (1 byte elemSize + SmvInt length + values...)
+    // complex types
+    TAG_CLASS           = 0x0C,
+    TAG_CLASS_SCHEMA    = 0x0D,
 };
 
 template <typename T>
@@ -95,72 +96,190 @@ public:
     }
 };
 
-template <typename T, size_t expectedSize, Tag_t tag_>
-class IntegralSerializer {
-    static_assert(sizeof(T) == expectedSize, "Value size doesn't match.");
-
+template <typename T>
+class CharSerializer {
+    static_assert(sizeof(T) == 1, "CharSerializer expects a 1-byte type.");
 public:
-    enum { TAG = tag_ };
+    enum { TAG = TAG_CHAR };
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
-        return writeTag(err, writer, TAG) && writer->write(err, &value, sizeof(T));
+        return writeTag(err, writer, TAG) && writer->write(err, &value, 1);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
-        if (!checkTag(err, reader, TAG))
-            return false;
-
-        if (!reader->read(err, &value_out, sizeof(T)))
-            return false;
-
-        return true;
+        return checkTag(err, reader, TAG) && reader->read(err, &value_out, 1);
     }
 };
 
-template <> class Serializer<uint8_t> :     public IntegralSerializer<uint8_t,  1, TAG_UINT8> {};
-template <> class Serializer<int8_t> :      public IntegralSerializer<int8_t,   1, TAG_INT8> {};
-template <> class Serializer<uint16_t> :    public IntegralSerializer<uint16_t, 2, TAG_UINT16> {};
-template <> class Serializer<int16_t> :     public IntegralSerializer<int16_t,  2, TAG_INT16> {};
-template <> class Serializer<uint32_t> :    public IntegralSerializer<uint32_t, 4, TAG_UINT32> {};
-template <> class Serializer<int32_t> :     public IntegralSerializer<int32_t,  4, TAG_INT32> {};
-template <> class Serializer<uint64_t> :    public IntegralSerializer<uint64_t, 8, TAG_UINT64> {};
-template <> class Serializer<int64_t> :     public IntegralSerializer<int64_t,  8, TAG_INT64> {};
+template <typename T>
+class SmvIntSerializer {
+public:
+    enum { TAG = TAG_SMVINT };
+
+    static bool serializeValue(IErrorHandler* err, IWriter* writer, const T& value) {
+        uint64_t sign, magnitude, signMask;
+
+        if (value >= 0) {
+            magnitude = value;
+            sign = 0;
+        }
+        else {
+            // FIXME: check overflow
+            magnitude = -value;
+            sign = 1;
+        }
+
+        signMask = 0x40;
+
+        // glue magnitude onto the value so that it will always be
+        // the most significant encoded bit
+        while ((magnitude & (signMask - 1)) != magnitude)
+            // FIXME: check overflow
+            signMask = signMask << 7;
+
+        magnitude |= sign * signMask;
+
+        // from now on, signMask is actually signMask|magnitudeMask
+        signMask |= (signMask - 1);
+
+        uint8_t byte;
+
+        while (signMask != 0) {
+            byte = magnitude & 0x7f;
+            magnitude = (magnitude >> 7);
+            signMask = (signMask >> 7);
+
+            if (signMask != 0)
+                byte |= 0x80;
+
+            if (!writer->write(err, &byte, 1))
+                return false;
+        }
+
+        return true;
+    }
+
+    static bool deserializeValue(IErrorHandler* err, IReader* reader, T& value_out) {
+        uint64_t magnitude = 0;
+        uint8_t byte;
+
+        unsigned int shift = 0;
+
+        for (;;) {
+            // FIXME: check overflow + max length
+            if (!reader->read(err, &byte, 1))
+                return false;
+
+            if (byte & 0x80) {
+                magnitude |= (byte & 0x7f) << shift;
+                shift += 7;
+            }
+            else {
+                magnitude |= (byte & 0x3f) << shift;
+
+                if (byte & 0x40) {
+                    // negative
+                    // FIXME: check overflow
+                    value_out = -magnitude;
+                }
+                else
+                    value_out = magnitude;
+
+                return true;
+            }
+        }
+    }
+
+    static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
+        return writeTag(err, writer, TAG) && serializeValue(err, writer, value);
+    }
+
+    static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
+        return checkTag(err, reader, TAG) && deserializeValue(err, reader, value_out);
+    }
+};
+
+template <> class Serializer<char> :                public CharSerializer<char> {};
+template <> class Serializer<unsigned char> :       public CharSerializer<unsigned char> {};
+
+template <> class Serializer<short> :               public SmvIntSerializer<short> {};
+template <> class Serializer<int> :                 public SmvIntSerializer<int> {};
+template <> class Serializer<long> :                public SmvIntSerializer<long> {};
+template <> class Serializer<long long> :           public SmvIntSerializer<long long> {};
+
+template <> class Serializer<unsigned short> :      public SmvIntSerializer<unsigned short> {};
+template <> class Serializer<unsigned int> :        public SmvIntSerializer<unsigned int> {};
+template <> class Serializer<unsigned long> :       public SmvIntSerializer<unsigned long> {};
+template <> class Serializer<unsigned long long> :  public SmvIntSerializer<unsigned long long> {};
 
 template <>
 class Serializer<BufString_t> {
 public:
-    enum { TAG = TAG_UTF8Z };
+    enum { TAG = TAG_UTF8 };
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const BufString_t& value) {
-        return writeTag(err, writer, TAG) && writer->write(err, value.buf, strlen(value.buf) + 1);
+        uint64_t length = strlen(value.buf);
+        return writeTag(err, writer, TAG) && SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+                && writer->write(err, value.buf, length);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, BufString_t& value_out) {
-        if (!checkTag(err, reader, TAG))
+        uint64_t length;
+
+        if (!checkTag(err, reader, TAG) || !SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
             return false;
 
-        size_t len = 0;
+        ensureSize(err, value_out.buf, value_out.bufSize, length + 1);
 
         char next;
 
-        do {
+        // FIXME: check for overflow of size_t
+        for (size_t have = 0; have < length; have++) {
             if (!reader->read(err, &next, sizeof(next)))
                 return false;
 
-            if (next == 0)
-                break;
-            else {
-                ensureSize(err, value_out.buf, value_out.bufSize, len + 1);
-                value_out.buf[len++] = next;
-            }
+            value_out.buf[have] = next;
         }
-        while (true);
 
-        ensureSize(err, value_out.buf, value_out.bufSize, len + 1);
-        value_out.buf[len] = 0;
+        value_out.buf[length] = 0;
         return true;
     }
 };
+
+#ifndef REFLECTOR_AVOID_STL
+template <>
+class Serializer<std::string> {
+public:
+    enum { TAG = TAG_UTF8 };
+
+    static bool serialize(IErrorHandler* err, IWriter* writer, const std::string& value) {
+        uint64_t length = value.length();
+        return writeTag(err, writer, TAG) && SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+                && writer->write(err, value.c_str(), length);
+    }
+
+    static bool deserialize(IErrorHandler* err, IReader* reader, std::string& value_out) {
+        uint64_t length;
+
+        if (!checkTag(err, reader, TAG) || !SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
+            return false;
+
+        char next;
+
+        value_out = "";
+
+        // FIXME: check for overflow of size_t
+        for (size_t have = 0; have < length; have++) {
+            if (!reader->read(err, &next, sizeof(next)))
+                return false;
+
+            value_out.append(1, next);
+        }
+
+        return true;
+    }
+};
+#endif
 
 template <class C>
 class InstanceSerializer {
@@ -236,3 +355,5 @@ public:
     }
 };
 }
+
+#endif

@@ -74,10 +74,12 @@ class Weapon {
 public:
     string name;
     int attack;
+    int agility_modifier;
 
     REFL_BEGIN_VIRTUAL("Weapon", 1)
         REFL_FIELD(name)
         REFL_FIELD(attack)
+        REFL_FIELD(agility_modifier)
     REFL_END
 };
 
@@ -86,6 +88,7 @@ public:
     Sword() {
         name = "Basic Sword";
         attack = 50;
+        agility_modifier = -200;
         enhanced = true;
     }
 
