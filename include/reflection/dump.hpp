@@ -28,7 +28,7 @@
 
 #include "api.hpp"
 #include "basic_types.hpp"
-#include "serialization.hpp"
+#include "serializer.hpp"
 
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 

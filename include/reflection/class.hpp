@@ -27,7 +27,7 @@
 #pragma once
 
 #include "api.hpp"
-#include "serialization.hpp"
+#include "serialization_manager.hpp"
 
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
@@ -97,7 +97,7 @@ class ClassReflection : public ITypeReflection {
 
         const auto fields = reflectFields(instance);
         //return serializeInstance(err, writer, instance.reflection_className(REFL_MATCH), fields);
-        return InstanceSerializer<C>::serializeInstance(
+        return SerializationManager<C>::serializeInstance(
                 err, writer, instance.reflection_classId(REFL_MATCH), fields);
     }
 

@@ -24,8 +24,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef REFLECTOR_HAVE_SERIALIZATION
-#define REFLECTOR_HAVE_SERIALIZATION
+#ifndef REFLECTOR_HAVE_SERIALIZER
+#define REFLECTOR_HAVE_SERIALIZER
 
 #include "base.hpp"
 #include "bufstring.hpp"

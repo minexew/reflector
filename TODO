@@ -1,0 +1,11 @@
+- Get rid of getTag()
+  - it's only used by the default serializer when generating a class schema
+
+  - the Tag concept doesn't apply to other serialization schemes
+    - they may have their own form of type information instead
+
+  - it would be pefrectly possible to make its existence toggleable with a macro
+    BUT it would be ugly as fuck
+
+  - a cleaner alternative, such as serializeTypeInformation could work
+

@@ -27,7 +27,8 @@
 #pragma once
 
 #include "magic.hpp"
-#include "serialization.hpp"
+#include "serialization_manager.hpp"
+#include "serializer.hpp"
 
 #include <limits>
 
@@ -40,7 +41,7 @@ public:\
     name_() {}\
     virtual bool deserialize(IErrorHandler* err, IReader* reader, void* p_value) override {\
         type_& value = *reinterpret_cast<type_*>(p_value);\
-        return Serializer<type_>::deserialize(err, reader, value);\
+        return SerializationManager<type_>::deserialize(err, reader, value);\
     }\
     virtual bool isPolymorphic() override { return false; }\
     virtual const char* typeName(const void* p_value) override { return #type_; }\
@@ -48,7 +49,7 @@ public:\
     virtual Tag_t getTag() override { return Serializer<type_>::TAG; }\
     virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value)  override {\
         const type_& value = *reinterpret_cast<const type_*>(p_value);\
-        return Serializer<type_>::serialize(err, writer, value);\
+        return SerializationManager<type_>::serialize(err, writer, value);\
     }\
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,\
             void* p_value) override {\
@@ -69,6 +70,10 @@ template <> ITypeReflection* reflectionForType<type_>(type_) {\
     return &reflection;\
 }\
 template <> ITypeReflection* reflectionForType2<type_>() {\
+    static reflection_ reflection;\
+    return &reflection;\
+}\
+template <> ITypeReflection* reflectionForType2<const type_>() {\
     static reflection_ reflection;\
     return &reflection;\
 }\

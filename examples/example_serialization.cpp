@@ -34,6 +34,37 @@
 
 using namespace std;
 
+namespace reflection {
+// Override postSerializationHook for all types using a stronger match (REFL_MATCH_0)
+template <class T>
+int postSerializationHook(IErrorHandler* err, IWriter* writer, const T& value, int serializationResult, REFL_MATCH_0) {
+    printf(".");
+    return -1;
+}
+
+// Override postSerializationHook for int32_t using a weak match but a specialized template (will take precedence)
+template <>
+int postSerializationHook(IErrorHandler* err, IWriter* writer, const int32_t& value, int serializationResult, REFL_MATCH_1) {
+    printf("!");
+    return -1;
+}
+
+// Stronger matching won't pick up for these ones - we need to specialize the template - WTF?!
+template <>
+int preInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
+        const ReflectedFields& fields, REFL_MATCH_1) {
+    printf("(%s:", className);
+    return -1;
+}
+
+template <>
+int postInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
+        const ReflectedFields& fields, int serializationResult, REFL_MATCH_1) {
+    printf(")");
+    return -1;
+}
+}
+
 struct DataPacket {
     string name;
     int32_t offset;
@@ -178,6 +209,7 @@ int main(int argc, char** argv) {
 
     MyWriter wr(file);
     reflection::reflectSerialize(*chr, &wr);
+    printf("\n");
 
     fclose(file);
 

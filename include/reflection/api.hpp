@@ -190,6 +190,20 @@ bool reflectFromString(T& inst, const std::string& str) {
     return refl->setFromString(err, str.c_str(), str.length(), (void*) &inst);
 }
 
+template <typename T>
+const char* reflectTypeName() {
+    auto refl = reflectionForType2<T>();
+
+    return refl->staticTypeName();
+}
+
+template <typename T>
+const char* reflectTypeName(T& inst) {
+    auto refl = reflectionForType2<T>();
+
+    return refl->typeName((const void*) &inst);
+}
+
 template <class C>
 const UUID_t& uuidOfClass() {
     return C::reflection_s_uuid(REFL_MATCH);
