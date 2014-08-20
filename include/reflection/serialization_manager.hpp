@@ -87,7 +87,7 @@ int postInstanceDeserializationHook(IErrorHandler* err, IWriter* writer, const c
 template <class T>
 class SerializationManager {
 public:
-    static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
+    static bool serialize(IErrorHandler* err, IWriter* writer, T const& value) {
         int hrc = preSerializationHook(err, writer, value, REFL_MATCH);
 
         if (hrc >= 0)

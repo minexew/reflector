@@ -48,7 +48,7 @@ public:\
     virtual const UUID_t* uuidOrNull(const void* p_value) override { return nullptr; }\
     virtual Tag_t getTag() override { return Serializer<type_>::TAG; }\
     virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value)  override {\
-        const type_& value = *reinterpret_cast<const type_*>(p_value);\
+        type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
         return SerializationManager<type_>::serialize(err, writer, value);\
     }\
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,\
@@ -59,7 +59,7 @@ public:\
     virtual const char* staticTypeName() override { return #type_; }\
     virtual bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, uint32_t fieldMask,\
             const void* p_value) override {\
-        const type_& value = *reinterpret_cast<const type_*>(p_value);\
+        type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
         return template_::toString(err, buf, bufSize, value);\
     }\
 };\
@@ -73,7 +73,7 @@ template <> ITypeReflection* reflectionForType2<type_>() {\
     static reflection_ reflection;\
     return &reflection;\
 }\
-template <> ITypeReflection* reflectionForType2<const type_>() {\
+template <> ITypeReflection* reflectionForType2<type_ const>() {\
     static reflection_ reflection;\
     return &reflection;\
 }\
@@ -164,10 +164,17 @@ public:
     }
 
     static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const Int_t& value) {
+#ifdef _MSC_VER
+        if (Limits::is_signed)
+            return bufStringPrintf(err, buf, bufSize, "%I64d", (int64_t) value);
+        else
+            return bufStringPrintf(err, buf, bufSize, "%I64u", (uint64_t) value);
+#else
         if (Limits::is_signed)
             return bufStringPrintf(err, buf, bufSize, "%lld", (long long) value);
         else
             return bufStringPrintf(err, buf, bufSize, "%llu", (unsigned long long) value);
+#endif
     }
 };
 
