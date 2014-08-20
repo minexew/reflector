@@ -29,7 +29,7 @@
 #include <reflection/api.hpp>
 #include <reflection/basic_types.hpp>
 
-using String = std::string;
+typedef std::string String;
 
 struct GetCommand {
     GetCommand() : show(false) {}
