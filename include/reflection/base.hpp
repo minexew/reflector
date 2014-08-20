@@ -46,6 +46,28 @@
 #define REFL_MATCH ((char) 0)
 
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
+class IErrorHandler;
+class ReflectedFields;
+}
+
+namespace serialization {
+using reflection::IErrorHandler;
+
+typedef uint8_t Tag_t;
+static_assert(sizeof(Tag_t) == 1, "uint8_t must be 8 bits");
+
+class IReader {
+public:
+    virtual bool read(IErrorHandler* err, void* buffer, size_t count) = 0;
+};
+
+class IWriter {
+public:
+    virtual bool write(IErrorHandler* err, const void* buffer, size_t count) = 0;
+};
+}
+
+namespace reflection {
 
 enum {
     FIELD_STATE = 1,
@@ -54,9 +76,6 @@ enum {
     FIELD_RESOURCE = 8,
     FIELD_MANDATORY = 256
 };
-
-typedef uint8_t Tag_t;
-static_assert(sizeof(Tag_t) == 1, "uint8_t must be 8 bits");
 
 struct UUID_t {
     uint32_t uuid[4];
@@ -100,17 +119,8 @@ public:
     }
 
     void allocationError(const char* functionName) { this->errorf("AllocationError", "Memory allocation failed in `%s`.", functionName); }
+    void unexpectedEndOfInput(const char* fileName) { this->errorf("UnexpectedEOF", "Unexpected end of input in `%s`.", fileName); }
     void notImplemented(const char* functionName) { this->errorf("NotImplemented", "Function `%s` is not implemented.", functionName); }
-};
-
-class IReader {
-public:
-    virtual bool read(IErrorHandler* err, void* buffer, size_t count) = 0;
-};
-
-class IWriter {
-public:
-    virtual bool write(IErrorHandler* err, const void* buffer, size_t count) = 0;
 };
 
 // general class for type reflection
@@ -121,9 +131,9 @@ public:
     virtual const char* typeName(const void* p_value) = 0;
     virtual const UUID_t* uuidOrNull(const void* p_value) = 0;
 
-    virtual Tag_t getTag() = 0;
-    virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value) = 0;
-    virtual bool deserialize(IErrorHandler* err, IReader* reader, void* p_value) = 0;
+    virtual serialization::Tag_t getSerializationTag() = 0;
+    virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) = 0;
+    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) = 0;
 
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,
             void* p_value) = 0;

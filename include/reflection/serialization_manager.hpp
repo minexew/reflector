@@ -29,7 +29,7 @@
 
 #include "serializer.hpp"
 
-namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
+namespace serialization {
 // for hooks:
 // return -1 for unhandled (use default Serializer)
 // return 0 for failed to handle
@@ -37,7 +37,6 @@ namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
 // it is possible to override for all types using a template with a stronger match (REFL_MATCH_0)
 
-class ReflectedFields;
 struct SerializationHookDummy_t;
 
 template <class T>
@@ -104,7 +103,7 @@ public:
     }
 
     static bool serializeInstance(IErrorHandler* err, IWriter* writer,
-            const char* className, const ReflectedFields& fields) {
+            const char* className, const reflection::ReflectedFields& fields) {
         int hrc = preInstanceSerializationHook(err, writer, className, fields, REFL_MATCH);
 
         if (hrc >= 0)
@@ -137,7 +136,7 @@ public:
     }
 
     static bool deserializeInstance(IErrorHandler* err, IWriter* writer,
-            const char* className, ReflectedFields& fields) {
+            const char* className, reflection::ReflectedFields& fields) {
         int hrc = preInstanceDeserializationHook(err, writer, className, fields, REFL_MATCH);
 
         if (hrc >= 0)

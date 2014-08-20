@@ -74,12 +74,12 @@ bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, Fields& 
 
 template <class C>
 class ClassReflection : public ITypeReflection {
-    virtual bool deserialize(IErrorHandler* err, IReader* reader, void* p_value) override {
+    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {
         return err->notImplemented("reflection::ClassReflection::deserialize"), false;
     }
 
-    virtual Tag_t getTag() override {
-        return TAG_CLASS;
+    virtual serialization::Tag_t getSerializationTag() override {
+        return serialization::TAG_CLASS;
     }
 
     virtual bool isPolymorphic() override {
@@ -92,12 +92,12 @@ class ClassReflection : public ITypeReflection {
         return instance.reflection_uuidOrNull(REFL_MATCH);
     }
 
-    virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value) override {
+    virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) override {
         const C& instance = *reinterpret_cast<const C*>(p_value);
 
         const auto fields = reflectFields(instance);
         //return serializeInstance(err, writer, instance.reflection_className(REFL_MATCH), fields);
-        return SerializationManager<C>::serializeInstance(
+        return serialization::SerializationManager<C>::serializeInstance(
                 err, writer, instance.reflection_classId(REFL_MATCH), fields);
     }
 

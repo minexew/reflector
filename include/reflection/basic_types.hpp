@@ -39,17 +39,17 @@
 #define DECLARE_REFLECTION(name_, type_, template_) class name_: public ITypeReflection {\
 public:\
     name_() {}\
-    virtual bool deserialize(IErrorHandler* err, IReader* reader, void* p_value) override {\
+    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {\
         type_& value = *reinterpret_cast<type_*>(p_value);\
-        return SerializationManager<type_>::deserialize(err, reader, value);\
+        return serialization::SerializationManager<type_>::deserialize(err, reader, value);\
     }\
     virtual bool isPolymorphic() override { return false; }\
     virtual const char* typeName(const void* p_value) override { return #type_; }\
     virtual const UUID_t* uuidOrNull(const void* p_value) override { return nullptr; }\
-    virtual Tag_t getTag() override { return Serializer<type_>::TAG; }\
-    virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value)  override {\
+    virtual serialization::Tag_t getSerializationTag() override { return serialization::Serializer<type_>::TAG; }\
+    virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value)  override {\
         type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
-        return SerializationManager<type_>::serialize(err, writer, value);\
+        return serialization::SerializationManager<type_>::serialize(err, writer, value);\
     }\
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,\
             void* p_value) override {\

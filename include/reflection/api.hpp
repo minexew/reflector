@@ -52,14 +52,14 @@ public:
         operator void* () { return field; }
         operator const void* () const { return field; }
 
-        bool deserialize(IReader* reader) { return refl->deserialize(err, reader, field); }
+        bool deserialize(serialization::IReader* reader) { return refl->deserialize(err, reader, field); }
         bool isPolymorphic() const { return refl->isPolymorphic(); }
         template <typename T> bool isType() const { return refl == reflectionForType2<T>(); }
         const char* staticTypeName() const { return refl->staticTypeName(); }
         bool toString(char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         bool toString(IErrorHandler* err, char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         const char* typeName() const { return refl->typeName(field); }
-        bool serialize(IWriter* writer) const { return refl->serialize(err, writer, field); }
+        bool serialize(serialization::IWriter* writer) const { return refl->serialize(err, writer, field); }
         bool setFromString(IErrorHandler* err, const char* str) { return refl->setFromString(err, str, strlen(str), field); }
 
 #ifndef REFLECTOR_AVOID_STL
@@ -154,15 +154,15 @@ void reflectPrint(T& instance, uint32_t fieldMask = FIELD_STATE | FIELD_CONFIG) 
 }
 
 template <typename T>
-bool reflectSerialize(T& inst, IWriter* writer) {
-    ITypeReflection* refl = reflectionForType(inst);
+bool reflectSerialize(const T& inst, serialization::IWriter* writer) {
+    ITypeReflection* refl = reflectionForType2<T>();
 
     return refl->serialize(err, writer, (const void*) &inst);
 }
 
 template <typename T>
-bool reflectDeserialize(T& value_out, IReader* reader) {
-    ITypeReflection* refl = reflectionForType(value_out);
+bool reflectDeserialize(T& value_out, serialization::IReader* reader) {
+    ITypeReflection* refl = reflectionForType2<T>();
 
     return refl->deserialize(err, reader, (void*) &value_out);
 }

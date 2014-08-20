@@ -26,102 +26,69 @@
 
 #include <reflection/api.hpp>
 #include <reflection/basic_types.hpp>
+#include <reflection/rpc.hpp>
+
+#include <utility/memory_reader_writer.hpp>
 
 using std::string;
 
-template <typename Return, typename Arg1, typename Arg2, typename Arg3>
-Return returnValueOf(Return (*)(Arg1, Arg2, Arg3));
-template <typename Return, typename Arg1, typename Arg2, typename Arg3>
-Arg1 arg1TypeOf(Return (*)(Arg1, Arg2, Arg3));
-template <typename Return, typename Arg1, typename Arg2, typename Arg3>
-Arg2 arg2TypeOf(Return (*)(Arg1, Arg2, Arg3));
-template <typename Return, typename Arg1, typename Arg2, typename Arg3>
-Arg3 arg3TypeOf(Return (*)(Arg1, Arg2, Arg3));
+// SERVER
 
-template <typename T> void dump(const T& value) {
-    string v = reflection::reflectToString(value);
-    puts(v.c_str());
-}
+int getResourceFromServer(string resourceName, unsigned int maxSize, bool cached) {
+    printf("[SERVER]\tgetResourceFromServer(%s, %u, %d)\n", resourceName.c_str(), maxSize, cached);
 
-// SERVER HEADER
-
-// generate a 3-argument forwarder newName_->functionName_
-#define DEFINE_RPC_3(newName_, functionName_)\
-bool newName_(const string* args, string& output) {\
-    decltype(arg1TypeOf(functionName_)) arg1;\
-    decltype(arg2TypeOf(functionName_)) arg2;\
-    decltype(arg3TypeOf(functionName_)) arg3;\
-    ::reflection::reflectFromString(arg1, args[0]);\
-    ::reflection::reflectFromString(arg2, args[1]);\
-    ::reflection::reflectFromString(arg3, args[2]);\
-    output = ::reflection::reflectToString(functionName_(arg1, arg2, arg3));\
-    return true;\
-}
-
-// SERVER CODE
-
-int getResourceFromServer(string resource, unsigned int maxSize, bool cached) {
-    printf("[SERVER] getResourceFromServer(%s, %u, %d)\n", resource.c_str(), maxSize, cached);
     return 42;
 }
 
-DEFINE_RPC_3(getResourceFromServerWrapper, getResourceFromServer)
+DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
 
-// process incoming RPCs
-void processRPC(const char* functionName, string* args, size_t numArgs, string& result) {
-    if (strcmp(functionName, "getResourceFromServer") == 0 && numArgs == 3)
-        getResourceFromServerWrapper(args, result);
-    else
-        fprintf(stderr, "Invalid RPC %s(%d)\n", functionName, (int) numArgs);
-}
-
-// CLIENT HEADER
-
-namespace reflection {
-// perform a 3-argument RPC
-template <typename Return, typename Arg1, typename Arg2, typename Arg3>
-Return rpcCall(const char* functionName, const Arg1& arg1, const Arg2& arg2, const Arg3& arg3) {
-    string args[3], result;
-    args[0] = reflectToString(arg1);
-    args[1] = reflectToString(arg2);
-    args[2] = reflectToString(arg3);
-
-    printf("-> server ['%s', '%s', '%s', '%s']\n", functionName,
-            args[0].c_str(), args[1].c_str(), args[2].c_str());
-    processRPC(functionName, args, 3, result);      // talk to server via IPC/REST/socket...
-    printf("<- server ['%s']\n", result.c_str());
-
-    Return ret;
-    reflectFromString(ret, result);
-    return ret;
-}
-}
-
-// generate a 3-argument forwarder newName_->rpcCall
-#define RPC_3(newName_, functionName_)\
-decltype(returnValueOf(functionName_)) newName_(\
-        const decltype(arg1TypeOf(functionName_))& arg1,\
-        const decltype(arg2TypeOf(functionName_))& arg2,\
-        const decltype(arg3TypeOf(functionName_))& arg3) {\
-    return ::reflection::rpcCall<decltype(returnValueOf(functionName_))>(#functionName_, arg1, arg2, arg3);\
-}
-
-// CLIENT CODE
+// CLIENT
 
 int getResourceFromServer(string resource, unsigned int maxSize, bool cached);
 
-RPC_3(getResourceFromServerRPC, getResourceFromServer)
+RPC_SERIALIZED_3(getResourceFromServerRPC, getResourceFromServer)
 
 int main(int argc, char* argv[]) {
     int result = getResourceFromServerRPC("/test", 3000, true);
-    printf("[CLIENT] Result is: %d\n", result);
+    printf("[CLIENT]\tResult is %d\n", result);
+}
+
+// RPC TRANSPORT IMPLEMENTATION
+
+namespace rpc {
+    string rpcFunctionName;
+    utility::MemoryReaderWriter io;
+
+    bool beginRPC(const char* functionName, IWriter*& writer_out, IReader*& reader_out) {
+        rpcFunctionName = functionName;
+        writer_out = &io;
+        reader_out = &io;
+        return true;
+    }
+
+    bool invokeRPC() {
+        printf("[RPC]\t%u bytes of arguments to server\n", io.writePos);
+        auto w1 = io.writePos;
+
+        if (rpcFunctionName == "getResourceFromServer")
+            assert(getResourceFromServerWrapper(&io, &io));
+        else
+            fprintf(stderr, "Invalid RPC %s\n", rpcFunctionName.c_str());
+
+        printf("[RPC]\t%u bytes of response from server\n", io.writePos - w1);
+        return true;
+    }
+
+    void endRPC() {
+        io.reset();
+    }
 }
 
 #include <reflection/default_error_handler.cpp>
 
 /*
--> server ['getResourceFromServer', '/test', '3000', 'true']
+[rpc] 9 bytes of arguments to server
 [SERVER] getResourceFromServer(/test, 3000, 1)
-<- server ['42']
+[rpc] 1 bytes of response from server
 [CLIENT] Result is: 42
 */

@@ -30,7 +30,9 @@
 #include "base.hpp"
 #include "bufstring.hpp"
 
-namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
+namespace serialization {
+using reflection::BufString_t;
+
 enum {
     TAG_NO_TYPE         = 0x00,
 
@@ -331,7 +333,7 @@ public:
 
             const char* name = field.name;
             className = field.className;
-            Tag_t tag = field.refl->getTag();
+            Tag_t tag = field.refl->getSerializationTag();
 
             bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
             bufStringSet(err, str.buf, str.bufSize, name, strlen(name));

@@ -34,7 +34,7 @@
 
 using namespace std;
 
-namespace reflection {
+namespace serialization {
 // Override postSerializationHook for all types using a stronger match (REFL_MATCH_0)
 template <class T>
 int postSerializationHook(IErrorHandler* err, IWriter* writer, const T& value, int serializationResult, REFL_MATCH_0) {
@@ -52,14 +52,14 @@ int postSerializationHook(IErrorHandler* err, IWriter* writer, const int32_t& va
 // Stronger matching won't pick up for these ones - we need to specialize the template - WTF?!
 template <>
 int preInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const ReflectedFields& fields, REFL_MATCH_1) {
+        const reflection::ReflectedFields& fields, REFL_MATCH_1) {
     printf("(%s:", className);
     return -1;
 }
 
 template <>
 int postInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const ReflectedFields& fields, int serializationResult, REFL_MATCH_1) {
+        const reflection::ReflectedFields& fields, int serializationResult, REFL_MATCH_1) {
     printf(")");
     return -1;
 }
@@ -144,7 +144,7 @@ public:
     REFL_END
 };
 
-class MyReader: public reflection::IReader {
+class MyReader: public serialization::IReader {
 public:
     MyReader(FILE* file) : file(file) {}
 
@@ -162,7 +162,7 @@ public:
     FILE* file;
 };
 
-class MyWriter: public reflection::IWriter {
+class MyWriter: public serialization::IWriter {
 public:
     MyWriter(FILE* file) : file(file) {}
 
@@ -187,7 +187,7 @@ static void dumpSchema() {
     assert(file != nullptr);
 
     MyWriter wr(file);
-    reflection::InstanceSerializer<C>::serializeSchema(reflection::err, &wr, className, fields);
+    serialization::InstanceSerializer<C>::serializeSchema(reflection::err, &wr, className, fields);
 
     fclose(file);
 }
