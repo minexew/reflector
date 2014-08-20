@@ -1,4 +1,4 @@
-## reflector - A C++ self-awareness library.
+## reflector - a C++ self-awareness library
 
 #### Currently not limited to:
 - class member reflection
