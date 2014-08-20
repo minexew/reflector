@@ -170,7 +170,7 @@ bool reflectDeserialize(T& value_out, IReader* reader) {
 #ifndef REFLECTOR_AVOID_STL
 template <typename T>
 std::string reflectToString(const T inst[], uint32_t fieldMask = FIELD_STATE) {
-    static_assert(false, "reflectToString currently doesn't work with arrays");
+    static_assert(T() && false, "reflectToString currently doesn't work with arrays");
 }
 
 template <typename T>

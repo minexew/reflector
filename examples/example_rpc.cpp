@@ -72,7 +72,7 @@ void processRPC(const char* functionName, string* args, size_t numArgs, string& 
     if (strcmp(functionName, "getResourceFromServer") == 0 && numArgs == 3)
         getResourceFromServerWrapper(args, result);
     else
-        fprintf(stderr, "Invalid RPC %s(%d)\n", functionName, numArgs);
+        fprintf(stderr, "Invalid RPC %s(%d)\n", functionName, (int) numArgs);
 }
 
 // CLIENT HEADER
