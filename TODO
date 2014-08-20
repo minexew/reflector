@@ -9,3 +9,6 @@
 
   - a cleaner alternative, such as serializeTypeInformation could work
 
+- implement class deserialization
+- consider possible ways of [de]serializing dynamically allocated class members
+- implement JSON RPC

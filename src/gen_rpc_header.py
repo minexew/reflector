@@ -32,10 +32,11 @@ def generate_RPC_SERIALIZED_n(num_args):
 
     for i in range(0, num_args):
         print('        decltype(::reflection::arg%dTypeIn(functionName_)) const& arg%d' % (i, i), end='')
-        print(',\\' if i + 1 < num_args else ') {\\')
+        if i + 1 < num_args: print(',\\')
 
+    print(') {\\')
     print('    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\\')
-    print('             ' + ', '.join(['#functionName_ '] + list('arg%d' % i for i in range(0, num_args))) + ');\\')
+    print('             ' + ', '.join(['#functionName_'] + list('arg%d' % i for i in range(0, num_args))) + ');\\')
 
     print('}')
     print()
@@ -87,7 +88,7 @@ def generate_rpcSerializedExecute(num_args):
 
     print('bool rpcSerializedExecute(' + func_variable + ', IReader* reader, IWriter* writer) {')
     for i in range(0, num_args):
-        print('Arg%d arg%d;' % (i, i))
+        print('    Arg%d arg%d;' % (i, i))
         if i + 1 == num_args: print('')
 
     for i in range(0, num_args):

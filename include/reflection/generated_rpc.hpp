@@ -8,8 +8,9 @@ namespace rpc {
 
 #define RPC_SERIALIZED_0(localName_, functionName_)\
 inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
+) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ );\
+             #functionName_);\
 }
 
 template <typename Return>
@@ -42,7 +43,7 @@ bool rpcSerializedExecute(Return (*function)(), IReader* reader, IWriter* writer
 inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg0TypeIn(functionName_)) const& arg0) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0);\
+             #functionName_, arg0);\
 }
 
 template <typename Return, typename Arg0>
@@ -66,7 +67,7 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0>
 bool rpcSerializedExecute(Return (*function)(Arg0), IReader* reader, IWriter* writer) {
-Arg0 arg0;
+    Arg0 arg0;
 
     if (!reflectDeserialize(arg0, reader)) return false;
 
@@ -82,7 +83,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
         decltype(::reflection::arg1TypeIn(functionName_)) const& arg1) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1);\
+             #functionName_, arg0, arg1);\
 }
 
 template <typename Return, typename Arg0, typename Arg1>
@@ -107,8 +108,8 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
+    Arg0 arg0;
+    Arg1 arg1;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -126,7 +127,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
         decltype(::reflection::arg2TypeIn(functionName_)) const& arg2) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2);\
+             #functionName_, arg0, arg1, arg2);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2>
@@ -152,9 +153,9 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -174,7 +175,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
         decltype(::reflection::arg3TypeIn(functionName_)) const& arg3) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3);\
+             #functionName_, arg0, arg1, arg2, arg3);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
@@ -201,10 +202,10 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -226,7 +227,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
         decltype(::reflection::arg4TypeIn(functionName_)) const& arg4) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
@@ -254,11 +255,11 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -282,7 +283,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
         decltype(::reflection::arg5TypeIn(functionName_)) const& arg5) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4, arg5);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
@@ -311,12 +312,12 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
-Arg5 arg5;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
+    Arg5 arg5;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -342,7 +343,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg5TypeIn(functionName_)) const& arg5,\
         decltype(::reflection::arg6TypeIn(functionName_)) const& arg6) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4, arg5, arg6);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
@@ -372,13 +373,13 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
-Arg5 arg5;
-Arg6 arg6;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
+    Arg5 arg5;
+    Arg6 arg6;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -406,7 +407,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg6TypeIn(functionName_)) const& arg6,\
         decltype(::reflection::arg7TypeIn(functionName_)) const& arg7) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
@@ -437,14 +438,14 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
-Arg5 arg5;
-Arg6 arg6;
-Arg7 arg7;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
+    Arg5 arg5;
+    Arg6 arg6;
+    Arg7 arg7;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -474,7 +475,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg7TypeIn(functionName_)) const& arg7,\
         decltype(::reflection::arg8TypeIn(functionName_)) const& arg8) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
@@ -506,15 +507,15 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
-Arg5 arg5;
-Arg6 arg6;
-Arg7 arg7;
-Arg8 arg8;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
+    Arg5 arg5;
+    Arg6 arg6;
+    Arg7 arg7;
+    Arg8 arg8;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -546,7 +547,7 @@ inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
         decltype(::reflection::arg8TypeIn(functionName_)) const& arg8,\
         decltype(::reflection::arg9TypeIn(functionName_)) const& arg9) {\
     return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_ , arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);\
+             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);\
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
@@ -579,16 +580,16 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9), IReader* reader, IWriter* writer) {
-Arg0 arg0;
-Arg1 arg1;
-Arg2 arg2;
-Arg3 arg3;
-Arg4 arg4;
-Arg5 arg5;
-Arg6 arg6;
-Arg7 arg7;
-Arg8 arg8;
-Arg9 arg9;
+    Arg0 arg0;
+    Arg1 arg1;
+    Arg2 arg2;
+    Arg3 arg3;
+    Arg4 arg4;
+    Arg5 arg5;
+    Arg6 arg6;
+    Arg7 arg7;
+    Arg8 arg8;
+    Arg9 arg9;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;

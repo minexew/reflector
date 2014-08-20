@@ -1,7 +1,15 @@
-reflector
-=========
+### reflector - A C++ self-awareness library.
 
-A C++ library for reflection and related principles, such as configuration management, dependency injection, serialization and resource lifecycle management.
+#### Currently not limited to:
+- class member reflection
+- configuration management
+- dependency injection
+- serialization
+- resource lifecycle management
+- serialized RPC
 
-### Where's the ~~code~~ documentation
-Clearly not here.
+#### Future plans
+- RPC over JSON [over HTTP]
+
+#### Documentation?
+Not yet.
