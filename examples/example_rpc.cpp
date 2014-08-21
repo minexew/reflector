@@ -83,7 +83,7 @@ namespace rpc {
     }
 
     bool invokeRPC() {
-        printf("[RPC]\t%u bytes of arguments to server\n", io.writePos);
+        printf("[RPC]\t%u bytes of arguments to server\n", unsigned(io.writePos));
         auto w1 = io.writePos;
 
         if (rpcFunctionName == "getResourceFromServer")
@@ -91,7 +91,7 @@ namespace rpc {
         else
             fprintf(stderr, "Invalid RPC %s\n", rpcFunctionName.c_str());
 
-        printf("[RPC]\t%u bytes of response from server\n", io.writePos - w1);
+        printf("[RPC]\t%u bytes of response from server\n", unsigned(io.writePos - w1));
         return true;
     }
 

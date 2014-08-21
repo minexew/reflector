@@ -88,7 +88,7 @@ def generate_rpcSerializedExecute(num_args):
 
     print('bool rpcSerializedExecute(' + func_variable + ', IReader* reader, IWriter* writer) {')
     for i in range(0, num_args):
-        print('    std::remove_cv<std::remove_reference<Arg%d>::type>::type arg%d;' % (i, i))
+        print('    typename std::remove_cv<typename std::remove_reference<Arg%d>::type>::type arg%d;' % (i, i))
         if i + 1 == num_args: print('')
 
     for i in range(0, num_args):
