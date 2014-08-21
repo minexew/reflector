@@ -47,7 +47,6 @@
 
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 class IErrorHandler;
-class ReflectedFields;
 }
 
 namespace serialization {

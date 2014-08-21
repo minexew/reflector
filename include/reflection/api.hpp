@@ -37,14 +37,25 @@ namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
 extern IErrorHandler* err;
 
+template <typename From, typename To>
+struct copy_const {
+    typedef To type;
+};
+
+template <typename From, typename To>
+struct copy_const<const From, To> {
+    typedef std::add_const<To> type;
+};
+
+template <typename Ptr_t>
 class ReflectedFields {
 public:
     struct Field : Field_t {
         const char* className;
-        void* inst;
+        Ptr_t inst;
         void* field;
 
-        Field(const Field_t& field_in, const char* className, void* inst)
+        Field(const Field_t& field_in, const char* className, Ptr_t inst)
             : Field_t(field_in), className(className), inst(inst) {
             field = fieldGetter(inst);
         }
@@ -78,7 +89,7 @@ public:
 #endif
     };
 
-    ReflectedFields(void* inst, FieldSet_t const* fieldSet)
+    ReflectedFields(Ptr_t inst, FieldSet_t const* fieldSet)
             : inst(inst), fieldSet(fieldSet) {
         // count all fields including base class(es)
         numFields = 0;
@@ -87,9 +98,9 @@ public:
         }
     }
 
-    Field operator [] (size_t index) const {
+    typename copy_const<Ptr_t, Field>::type operator [] (size_t index) const {
         FieldSet_t const* p_fieldSet = fieldSet;
-        void* p_inst = inst;
+        Ptr_t p_inst = inst;
 
         while (true) {
             // perhaps the field is in this class?
@@ -98,7 +109,7 @@ public:
 
             // apparently not; search next base class
             index -= p_fieldSet->numFields;
-            p_inst = p_fieldSet->derivedPtrToBasePtr(p_inst);
+            p_inst = p_fieldSet->derivedPtrToBasePtr(const_cast<void*>(p_inst));
             p_fieldSet = p_fieldSet->baseClassFields;
         }
     }
@@ -111,7 +122,7 @@ public:
         return numFields;
     }
 
-    void* inst;
+    Ptr_t inst;
     FieldSet_t const* fieldSet;
     size_t numFields;
 };
@@ -122,13 +133,18 @@ const char* reflectClassName(T& inst) {
 }
 
 template <typename T>
-ReflectedFields reflectFields(T& inst) {
-    return ReflectedFields((void*) &inst, inst.reflection_getFields(REFL_MATCH));
+ReflectedFields<void*> reflectFields(T& inst) {
+    return ReflectedFields<void*>(reinterpret_cast<void*>(&inst), inst.reflection_getFields(REFL_MATCH));
+}
+
+template <typename T>
+ReflectedFields<const void*> reflectFields(const T& inst) {
+    return ReflectedFields<const void*>(reinterpret_cast<const void*>(&inst), inst.reflection_getFields(REFL_MATCH));
 }
 
 template <typename C>
-ReflectedFields reflectFieldsStatic() {
-    return ReflectedFields(nullptr, C::template reflection_s_getFields<C>(REFL_MATCH));
+ReflectedFields<void*> reflectFieldsStatic() {
+    return ReflectedFields<void*>(nullptr, C::template reflection_s_getFields<C>(REFL_MATCH));
 }
 
 template <typename T>
@@ -157,14 +173,14 @@ template <typename T>
 bool reflectSerialize(const T& inst, serialization::IWriter* writer) {
     ITypeReflection* refl = reflectionForType2<T>();
 
-    return refl->serialize(err, writer, (const void*) &inst);
+    return refl->serialize(err, writer, reinterpret_cast<const void*>(&inst));
 }
 
 template <typename T>
 bool reflectDeserialize(T& value_out, serialization::IReader* reader) {
     ITypeReflection* refl = reflectionForType2<T>();
 
-    return refl->deserialize(err, reader, (void*) &value_out);
+    return refl->deserialize(err, reader, reinterpret_cast<void*>(&value_out));
 }
 
 #ifndef REFLECTOR_AVOID_STL
@@ -181,7 +197,7 @@ std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
     size_t bufSize = 0;
     AllocGuard guard(buf);
 
-    if (!refl->toString(err, buf, bufSize, fieldMask, (const void*) &inst))
+    if (!refl->toString(err, buf, bufSize, fieldMask, reinterpret_cast<const void*>(&inst)))
         return "";
 
     return buf;
@@ -192,7 +208,7 @@ template <typename T>
 bool reflectFromString(T& inst, const std::string& str) {
     ITypeReflection* refl = reflectionForType(inst);
 
-    return refl->setFromString(err, str.c_str(), str.length(), (void*) &inst);
+    return refl->setFromString(err, str.c_str(), str.length(), reinterpret_cast<void*>(&inst));
 }
 
 template <typename T>
@@ -206,7 +222,7 @@ template <typename T>
 const char* reflectTypeName(T& inst) {
     auto refl = reflectionForType2<T>();
 
-    return refl->typeName((const void*) &inst);
+    return refl->typeName(reinterpret_cast<const void*>(&inst));
 }
 
 template <class C>

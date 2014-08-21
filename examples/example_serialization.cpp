@@ -49,17 +49,16 @@ int postSerializationHook(IErrorHandler* err, IWriter* writer, const int32_t& va
     return -1;
 }
 
-// Stronger matching won't pick up for these ones - we need to specialize the template - WTF?!
-template <>
+template <typename Fields>
 int preInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const reflection::ReflectedFields& fields, REFL_MATCH_1) {
+        const Fields& fields, REFL_MATCH_0) {
     printf("(%s:", className);
     return -1;
 }
 
-template <>
+template <typename Fields>
 int postInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const reflection::ReflectedFields& fields, int serializationResult, REFL_MATCH_1) {
+        const Fields& fields, int serializationResult, REFL_MATCH_0) {
     printf(")");
     return -1;
 }

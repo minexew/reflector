@@ -67,7 +67,7 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0>
 bool rpcSerializedExecute(Return (*function)(Arg0), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
 
     if (!reflectDeserialize(arg0, reader)) return false;
 
@@ -108,8 +108,8 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -153,9 +153,9 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -202,10 +202,10 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -255,11 +255,11 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -312,12 +312,12 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
-    std::remove_reference<Arg5>::type arg5;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
+    std::remove_cv<std::remove_reference<Arg5>::type>::type arg5;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -373,13 +373,13 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
-    std::remove_reference<Arg5>::type arg5;
-    std::remove_reference<Arg6>::type arg6;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
+    std::remove_cv<std::remove_reference<Arg5>::type>::type arg5;
+    std::remove_cv<std::remove_reference<Arg6>::type>::type arg6;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -438,14 +438,14 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
-    std::remove_reference<Arg5>::type arg5;
-    std::remove_reference<Arg6>::type arg6;
-    std::remove_reference<Arg7>::type arg7;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
+    std::remove_cv<std::remove_reference<Arg5>::type>::type arg5;
+    std::remove_cv<std::remove_reference<Arg6>::type>::type arg6;
+    std::remove_cv<std::remove_reference<Arg7>::type>::type arg7;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -507,15 +507,15 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
-    std::remove_reference<Arg5>::type arg5;
-    std::remove_reference<Arg6>::type arg6;
-    std::remove_reference<Arg7>::type arg7;
-    std::remove_reference<Arg8>::type arg8;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
+    std::remove_cv<std::remove_reference<Arg5>::type>::type arg5;
+    std::remove_cv<std::remove_reference<Arg6>::type>::type arg6;
+    std::remove_cv<std::remove_reference<Arg7>::type>::type arg7;
+    std::remove_cv<std::remove_reference<Arg8>::type>::type arg8;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;
@@ -580,16 +580,16 @@ Return rpcSerializedCall(
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9), IReader* reader, IWriter* writer) {
-    std::remove_reference<Arg0>::type arg0;
-    std::remove_reference<Arg1>::type arg1;
-    std::remove_reference<Arg2>::type arg2;
-    std::remove_reference<Arg3>::type arg3;
-    std::remove_reference<Arg4>::type arg4;
-    std::remove_reference<Arg5>::type arg5;
-    std::remove_reference<Arg6>::type arg6;
-    std::remove_reference<Arg7>::type arg7;
-    std::remove_reference<Arg8>::type arg8;
-    std::remove_reference<Arg9>::type arg9;
+    std::remove_cv<std::remove_reference<Arg0>::type>::type arg0;
+    std::remove_cv<std::remove_reference<Arg1>::type>::type arg1;
+    std::remove_cv<std::remove_reference<Arg2>::type>::type arg2;
+    std::remove_cv<std::remove_reference<Arg3>::type>::type arg3;
+    std::remove_cv<std::remove_reference<Arg4>::type>::type arg4;
+    std::remove_cv<std::remove_reference<Arg5>::type>::type arg5;
+    std::remove_cv<std::remove_reference<Arg6>::type>::type arg6;
+    std::remove_cv<std::remove_reference<Arg7>::type>::type arg7;
+    std::remove_cv<std::remove_reference<Arg8>::type>::type arg8;
+    std::remove_cv<std::remove_reference<Arg9>::type>::type arg9;
 
     if (!reflectDeserialize(arg0, reader)) return false;
     if (!reflectDeserialize(arg1, reader)) return false;

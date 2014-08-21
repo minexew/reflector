@@ -32,7 +32,7 @@
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
 template <typename Fields>
-bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, Fields& fields, uint32_t fieldMask) {
+bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, const Fields& fields, uint32_t fieldMask) {
     if (!bufStringSet(err, buf, bufSize, "{", 1))
         return false;
 

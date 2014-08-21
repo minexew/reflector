@@ -37,8 +37,6 @@ namespace serialization {
 
 // it is possible to override for all types using a template with a stronger match (REFL_MATCH_0)
 
-struct SerializationHookDummy_t;
-
 template <class T>
 int preSerializationHook(IErrorHandler* err, IWriter* writer, const T& value, REFL_MATCH_1) {
     return -1;
@@ -49,15 +47,15 @@ int postSerializationHook(IErrorHandler* err, IWriter* writer, const T& value, i
     return -1;
 }
 
-template <class T>
+template <class Fields>
 int preInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const T& fields, REFL_MATCH_1) {
+        const Fields& fields, REFL_MATCH_1) {
     return -1;
 }
 
-template <class T>
+template <class Fields>
 int postInstanceSerializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        const T& fields, int serializationResult, REFL_MATCH_1) {
+        const Fields& fields, int serializationResult, REFL_MATCH_1) {
     return -1;
 }
 
@@ -71,15 +69,15 @@ int postDeserializationHook(IErrorHandler* err, IReader* reader, T& value_out, i
     return -1;
 }
 
-template <class T>
+template <class Fields>
 int preInstanceDeserializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        T& fields, REFL_MATCH_1) {
+        Fields& fields, REFL_MATCH_1) {
     return -1;
 }
 
-template <class T>
+template <class Fields>
 int postInstanceDeserializationHook(IErrorHandler* err, IWriter* writer, const char* className,
-        T& fields, int deserializationResult, REFL_MATCH_1) {
+        Fields& fields, int deserializationResult, REFL_MATCH_1) {
     return -1;
 }
 
@@ -102,8 +100,9 @@ public:
         return rc != 0;
     }
 
+    template <typename Fields>
     static bool serializeInstance(IErrorHandler* err, IWriter* writer,
-            const char* className, const reflection::ReflectedFields& fields) {
+            const char* className, const Fields& fields) {
         int hrc = preInstanceSerializationHook(err, writer, className, fields, REFL_MATCH);
 
         if (hrc >= 0)
@@ -135,8 +134,9 @@ public:
         return rc != 0;
     }
 
+    template <typename Fields>
     static bool deserializeInstance(IErrorHandler* err, IWriter* writer,
-            const char* className, reflection::ReflectedFields& fields) {
+            const char* className, const Fields& fields) {
         int hrc = preInstanceDeserializationHook(err, writer, className, fields, REFL_MATCH);
 
         if (hrc >= 0)
