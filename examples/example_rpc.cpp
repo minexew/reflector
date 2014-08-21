@@ -112,7 +112,7 @@ namespace rpc {
 #include <reflection/default_error_handler.cpp>
 
 /*
-[RPC]   41 bytes of arguments to server
+[RPC]   24 bytes of arguments to server
 [SERVER]        getResourceFromServer(/test, 3000, [static-only, max 4096 kB, 3600 s])
 [RPC]   1 bytes of response from server
 [CLIENT]        Result is 42

@@ -52,26 +52,30 @@ enum {
     TAG_CLASS_SCHEMA    = 0x0D,
 };
 
+typedef uint8_t Tag_t;
+static_assert(sizeof(Tag_t) == 1, "uint8_t must be 8 bits");
+
 template <typename T>
 class Serializer {
 };
 
-inline bool checkTag(IErrorHandler* err, IReader* reader, Tag_t expected) {
-    /*Tag_t tag;
+template <class IErrorHandler>
+bool checkTag(IErrorHandler* err, IReader* reader, Tag_t expected) {
+    Tag_t tag;
 
     if (!reader->read(err, &tag, sizeof(tag)))
         return false;
 
     if (tag != expected)
         return err->errorf("IncorrectType", "Unexpected tag 0x%02X, expected 0x%02X.", tag, expected),
-                false;*/
+                false;
 
     return true;
 }
 
-inline bool writeTag(IErrorHandler* err, IWriter* writer, Tag_t tag) {
-    //return writer->write(err, &tag, sizeof(tag));
-    return true;
+template <class IErrorHandler>
+bool writeTag(IErrorHandler* err, IWriter* writer, Tag_t tag) {
+    return writer->write(err, &tag, sizeof(tag));
 }
 
 template <>
@@ -81,13 +85,10 @@ public:
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const bool& value) {
         uint8_t normalizedValue = value ? 0x01 : 0x00;
-        return writeTag(err, writer, TAG) && writer->write(err, &normalizedValue, 1);
+        return writer->write(err, &normalizedValue, 1);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, bool& value_out) {
-        if (!checkTag(err, reader, TAG))
-            return false;
-
         uint8_t value;
 
         if (!reader->read(err, &value, 1))
@@ -105,11 +106,11 @@ public:
     enum { TAG = TAG_CHAR };
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
-        return writeTag(err, writer, TAG) && writer->write(err, &value, 1);
+        return writer->write(err, &value, 1);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
-        return checkTag(err, reader, TAG) && reader->read(err, &value_out, 1);
+        return reader->read(err, &value_out, 1);
     }
 };
 
@@ -193,11 +194,11 @@ public:
     }
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
-        return writeTag(err, writer, TAG) && serializeValue(err, writer, value);
+        return serializeValue(err, writer, value);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
-        return checkTag(err, reader, TAG) && deserializeValue(err, reader, value_out);
+        return deserializeValue(err, reader, value_out);
     }
 };
 
@@ -219,16 +220,20 @@ class Serializer<BufString_t> {
 public:
     enum { TAG = TAG_UTF8 };
 
+    static bool serialize(IErrorHandler* err, IWriter* writer, const char* value) {
+        uint64_t length = strlen(value);
+        return SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+                && writer->write(err, value, length);
+    }
+
     static bool serialize(IErrorHandler* err, IWriter* writer, const BufString_t& value) {
-        uint64_t length = strlen(value.buf);
-        return writeTag(err, writer, TAG) && SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
-                && writer->write(err, value.buf, length);
+        return serialize(err, writer, value.buf);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, BufString_t& value_out) {
         uint64_t length;
 
-        if (!checkTag(err, reader, TAG) || !SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
+        if (!SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
             return false;
 
         ensureSize(err, value_out.buf, value_out.bufSize, length + 1);
@@ -256,14 +261,14 @@ public:
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const std::string& value) {
         uint64_t length = value.length();
-        return writeTag(err, writer, TAG) && SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+        return SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
                 && writer->write(err, value.c_str(), length);
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, std::string& value_out) {
         uint64_t length;
 
-        if (!checkTag(err, reader, TAG) || !SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
+        if (!SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
             return false;
 
         char next;
@@ -291,18 +296,6 @@ public:
     template <typename Fields>
     static bool serializeInstance(IErrorHandler* err, IWriter* writer,
             const char* className, const Fields& fields) {
-        if (!writeTag(err, writer, TAG))
-            return false;
-
-        BufString_t cn;
-        bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
-
-        uint32_t numFields = fields.count();
-
-        if (!Serializer<BufString_t>::serialize(err, writer, cn)
-                || !Serializer<uint32_t>::serialize(err, writer, numFields))
-            return false;
-
         for (size_t i = 0; i < fields.count(); i++) {
             const auto& field = fields[i];
 
@@ -316,20 +309,6 @@ public:
     template <typename Fields>
     static bool deserializeInstance(IErrorHandler* err, IReader* reader,
             const char* className, Fields& fields) {
-        if (!checkTag(err, reader, TAG))
-            return false;
-
-        BufString_t cn;
-        uint32_t numFields;
-
-        if (!Serializer<BufString_t>::deserialize(err, reader, cn)
-                || !Serializer<uint32_t>::deserialize(err, reader, numFields))
-            return false;
-
-        if (cn.buf == nullptr || strcmp(cn.buf, className) != 0)
-            return err->errorf("TypeMismatch", "Unexpected class type `%s` when deserializing an instance of `%s`",
-                    cn.buf, className), false;
-
         for (size_t i = 0; i < fields.count(); i++) {
             auto field = fields[i];
 
@@ -343,16 +322,11 @@ public:
     template <typename Fields>
     static bool serializeSchema(IErrorHandler* err, IWriter* writer,
             const char* className, Fields& fields) {
-        if (!writeTag(err, writer, TAG_CLASS_SCHEMA))
-            return false;
-
         BufString_t cn, str;
-        //bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
 
-        uint32_t numFields = fields.count();
+        size_t numFields = fields.count();
 
-        if (/*!Serializer<BufString_t>::serialize(err, writer, cn)
-                || */!Serializer<uint32_t>::serialize(err, writer, numFields))
+        if (!Serializer<size_t>::serialize(err, writer, numFields))
             return false;
 
         for (size_t i = 0; i < fields.count(); i++) {
@@ -360,24 +334,14 @@ public:
 
             const char* name = field.name;
             className = field.className;
-            Tag_t tag = field.refl->getSerializationTag();
 
             bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
             bufStringSet(err, str.buf, str.bufSize, name, strlen(name));
 
             if (!Serializer<BufString_t>::serialize(err, writer, cn)
                     || !Serializer<BufString_t>::serialize(err, writer, str)
-                    || !writer->write(err, &tag, sizeof(tag)))
+                    || !field.refl->serializeTypeInformation(err, writer, nullptr))
                 return false;
-
-            if (tag == TAG_CLASS) {
-                className = field.staticTypeName();
-
-                bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
-
-                if (!Serializer<BufString_t>::serialize(err, writer, cn))
-                    return false;
-            }
         }
 
         return true;

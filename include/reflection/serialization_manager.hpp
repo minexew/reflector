@@ -100,6 +100,30 @@ public:
         return rc != 0;
     }
 
+    static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
+        int hrc = preDeserializationHook(err, reader, value_out, REFL_MATCH);
+
+        if (hrc >= 0)
+            return (bool) hrc;
+
+        int rc = Serializer<T>::deserialize(err, reader, value_out);
+
+        hrc = postDeserializationHook(err, reader, value_out, rc, REFL_MATCH);
+
+        if (hrc >= 0)
+            return (bool) hrc;
+
+        return rc != 0;
+    }
+
+    static bool serializeTypeInformation(IErrorHandler* err, IWriter* writer, T const& value) {
+        return writeTag(err, writer, Serializer<T>::TAG);
+    }
+
+    static bool verifyTypeInformation(IErrorHandler* err, IReader* reader, T& value_out) {
+        return checkTag(err, reader, Serializer<T>::TAG);
+    }
+
     template <typename Fields>
     static bool serializeInstance(IErrorHandler* err, IWriter* writer,
             const char* className, const Fields& fields) {
@@ -111,22 +135,6 @@ public:
         int rc = InstanceSerializer<T>::serializeInstance(err, writer, className, fields);
 
         hrc = postInstanceSerializationHook(err, writer, className, fields, rc, REFL_MATCH);
-
-        if (hrc >= 0)
-            return (bool) hrc;
-
-        return rc != 0;
-    }
-
-    static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
-        int hrc = preDeserializationHook(err, reader, value_out, REFL_MATCH);
-
-        if (hrc >= 0)
-            return (bool) hrc;
-
-        int rc = Serializer<T>::deserialize(err, reader, value_out);
-
-        hrc = postDeserializationHook(err, reader, value_out, rc, REFL_MATCH);
 
         if (hrc >= 0)
             return (bool) hrc;
@@ -150,6 +158,20 @@ public:
             return (bool) hrc;
 
         return rc != 0;
+    }
+
+    static bool serializeInstanceTypeInformation(IErrorHandler* err, IWriter* writer) {
+        return writeTag(err, writer, TAG_CLASS) && Serializer<BufString_t>::serialize(err, writer,
+                T::reflection_s_classId(REFL_MATCH));
+    }
+
+    static bool serializeInstanceTypeInformation(IErrorHandler* err, IWriter* writer, T const& value) {
+        return writeTag(err, writer, TAG_CLASS) && Serializer<BufString_t>::serialize(err, writer,
+                value.reflection_classId(REFL_MATCH));
+    }
+
+    static bool verifyInstanceTypeInformation(IErrorHandler* err, IReader* reader, T& value_out) {
+        return checkTag(err, reader, TAG_CLASS);
     }
 };
 }

@@ -74,19 +74,6 @@ bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, const Fi
 
 template <class C>
 class ClassReflection : public ITypeReflection {
-    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {
-        C& instance = *reinterpret_cast<C*>(p_value);
-
-        auto fields = reflectFields(instance);
-
-        return serialization::SerializationManager<C>::deserializeInstance(
-                err, reader, instance.reflection_classId(REFL_MATCH), fields);
-    }
-
-    virtual serialization::Tag_t getSerializationTag() override {
-        return serialization::TAG_CLASS;
-    }
-
     virtual bool isPolymorphic() override {
         return false;
     }
@@ -95,6 +82,15 @@ class ClassReflection : public ITypeReflection {
         const C& instance = *reinterpret_cast<const C*>(p_value);
 
         return instance.reflection_uuidOrNull(REFL_MATCH);
+    }
+
+    virtual const char* staticTypeName() override {
+        return C::reflection_s_className(REFL_MATCH);
+    }
+
+    virtual const char* typeName(const void* p_value) override {
+        const C& instance = *reinterpret_cast<const C*>(p_value);
+        return instance.reflection_className(REFL_MATCH);
     }
 
     virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) override {
@@ -106,13 +102,34 @@ class ClassReflection : public ITypeReflection {
                 err, writer, instance.reflection_classId(REFL_MATCH), fields);
     }
 
+    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {
+        C& instance = *reinterpret_cast<C*>(p_value);
+
+        auto fields = reflectFields(instance);
+
+        return serialization::SerializationManager<C>::deserializeInstance(
+                err, reader, instance.reflection_classId(REFL_MATCH), fields);
+    }
+
+    virtual bool serializeTypeInformation(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) override {
+        if (p_value != nullptr) {
+            const C& instance = *reinterpret_cast<const C*>(p_value);
+
+            return serialization::SerializationManager<C>::serializeInstanceTypeInformation(err, writer, instance);
+        }
+        else
+            return serialization::SerializationManager<C>::serializeInstanceTypeInformation(err, writer);
+    }
+
+    virtual bool verifyTypeInformation(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {
+        C& instance = *reinterpret_cast<C*>(p_value);
+
+        return serialization::SerializationManager<C>::verifyInstanceTypeInformation(err, reader, instance);
+    }
+
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,
             void* p_value) override {
         return err->notImplemented("reflection::ClassReflection::setFromString"), false;
-    }
-
-    virtual const char* staticTypeName() override {
-        return C::reflection_s_className(REFL_MATCH);
     }
 
     virtual bool toString(IErrorHandler* err, char*& buffer, size_t& bufferSize, uint32_t fieldMask,
@@ -122,76 +139,13 @@ class ClassReflection : public ITypeReflection {
         const auto fields = reflectFields(instance);
         return fieldsToBufString(err, buffer, bufferSize, fields, fieldMask);
     }
-
-    virtual const char* typeName(const void* p_value) override {
-        const C& instance = *reinterpret_cast<const C*>(p_value);
-        return instance.reflection_className(REFL_MATCH);
-    }
 };
-/*
-template <class C>
-class ClassPtrReflection : public ITypeReflection {
-    virtual bool deserialize(IErrorHandler* err, IReader* reader, void* p_value) override {
-        return err->notImplemented("reflection::ClassPtrReflection::deserialize"), false;
-    }
 
-    virtual Tag_t getTag() override {
-        return TAG_CLASS;
-    }
-
-    virtual bool isPolymorphic() override {
-        return C::reflection_s_isPolymorphic(REFL_MATCH);
-    }
-
-    virtual uint32_t const* uuidOrNull(const void* p_value) override {
-        const C* instance = *reinterpret_cast<const C* const*>(p_value);
-
-        return instance->reflection_uuidOrNull(REFL_MATCH);
-    }
-
-    virtual bool serialize(IErrorHandler* err, IWriter* writer, const void* p_value) override {
-        const C* instance = *reinterpret_cast<const C* const*>(p_value);
-
-        const auto fields = reflectFields(*instance);
-        //return serializeFields(err, writer, instance->reflection_className(REFL_MATCH), fields);
-        return InstanceSerializer<C>::serializeInstance(
-                err, writer, instance->reflection_classId(REFL_MATCH), fields);
-    }
-
-    virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,
-            void* p_value) override {
-        return err->notImplemented("reflection::ClassPtrReflection::setFromString"), false;
-    }
-
-    virtual const char* staticTypeName() override {
-        return C::reflection_s_className(REFL_MATCH);
-    }
-
-    virtual bool toString(IErrorHandler* err, char*& buffer, size_t& bufferSize,
-            const void* p_value) override {
-        const C* instance = *reinterpret_cast<const C* const*>(p_value);
-
-        auto fields = reflectFields(*instance);
-        return fieldsToBufString(err, buffer, bufferSize, fields);
-    }
-
-    virtual const char* typeName(const void* p_value) override {
-        const C* instance = *reinterpret_cast<const C* const*>(p_value);
-        return instance->reflection_className(REFL_MATCH);
-    }
-};
-*/
 template <class C>
 ITypeReflection* reflectionForType(C) {
     static ClassReflection<C> reflection;
     return &reflection;
 }
-
-/*template <class C>
-ITypeReflection* reflectionForType(C*) {
-    static ClassPtrReflection<C> reflection;
-    return &reflection;
-}*/
 
 template <class C>
 ITypeReflection* reflectionForType2() {

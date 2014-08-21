@@ -88,7 +88,7 @@ bool str_ends_with(const char* str, const char* suffix) {
 }
 
 int usage() {
-    fprintf(stderr, "usage: example_dump_serialization <filename>.class\n");
+    fprintf(stderr, "usage: example_dump_serialization <filename>.class <classId>\n");
     fprintf(stderr, "\tOR example_dump_serialization <filename>.class_schema\n");
     return -1;
 }
@@ -105,7 +105,10 @@ int main(int argc, char** argv) {
     MySchemaProvider sp;
 
     if (str_ends_with(fileName, ".class")) {
-        reflection::dumpValue(reflection::TAG_CLASS, &rd, &rd, &sp);
+        if (argc < 3)
+            return usage();
+
+        reflection::dumpClass(&rd, &rd, argv[2], &sp);
         printf("\n");
     }
     else if (str_ends_with(fileName, ".class_schema")) {

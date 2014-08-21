@@ -162,13 +162,11 @@ static bool dumpTaggedClass(IReader* reader, ISeekBack* sb, ISchemaProvider* sp 
     return true;
 }
 
-static bool dumpClass(IReader* reader, ISeekBack* sb, ISchemaProvider* sp = nullptr, int offset = 0) {
+static bool dumpClass(IReader* reader, ISeekBack* sb, const char* className_, ISchemaProvider* sp, int offset = 0) {
     BufString_t className, str;
     uint32_t numFields;
 
-    if (!Serializer<BufString_t>::deserialize(err, reader, className)
-            || !Serializer<uint32_t>::deserialize(err, reader, numFields))
-        return false;
+    bufStringSet(err, className.buf, className.bufSize, className_, strlen(className_));
 
     printf("`%s`", className.buf);
 
@@ -182,8 +180,7 @@ static bool dumpClass(IReader* reader, ISeekBack* sb, ISchemaProvider* sp = null
     printf(" {\n");
     offset++;
 
-    if (/*!Serializer<BufString_t>::deserialize(err, schemaReader, className)
-            || */!Serializer<uint32_t>::deserialize(err, schemaReader, numFields))
+    if (!Serializer<uint32_t>::deserialize(err, schemaReader, numFields))
         return false;
 
     // TODO: check if values as expected
@@ -204,10 +201,10 @@ static bool dumpClass(IReader* reader, ISeekBack* sb, ISchemaProvider* sp = null
             if (!Serializer<BufString_t>::deserialize(err, schemaReader, className))
                 return false;
 
-            //printf("(class `%s`) ", className.buf);
+            if (!dumpClass(reader, sb, className.buf, sp, offset))
+                return false;
         }
-
-        if (!dumpValue(tag, reader, sb, sp, offset))
+        else if (!dumpValue(tag, reader, sb, sp, offset))
             return false;
 
         printf("\n");
@@ -305,7 +302,6 @@ static bool dumpValue(Tag_t tag, IReader* reader, ISeekBack* sb, ISchemaProvider
 
         case TAG_UTF8: return dumpString(reader);
 
-        case TAG_CLASS: return dumpClass(reader, sb, sp, offset);
         case TAG_CLASS_SCHEMA: return dumpClassSchema(reader, offset);
 
         default: err->errorf("UnknownType", "Unrecognized tag %02X.\n", tag); return false;

@@ -52,9 +52,6 @@ class IErrorHandler;
 namespace serialization {
 using reflection::IErrorHandler;
 
-typedef uint8_t Tag_t;
-static_assert(sizeof(Tag_t) == 1, "uint8_t must be 8 bits");
-
 class IReader {
 public:
     virtual bool read(IErrorHandler* err, void* buffer, size_t count) = 0;
@@ -130,9 +127,10 @@ public:
     virtual const char* typeName(const void* p_value) = 0;
     virtual const UUID_t* uuidOrNull(const void* p_value) = 0;
 
-    virtual serialization::Tag_t getSerializationTag() = 0;
     virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) = 0;
     virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) = 0;
+    virtual bool serializeTypeInformation(IErrorHandler* err, serialization::IWriter* writer, const void* p_value) = 0;
+    virtual bool verifyTypeInformation(IErrorHandler* err, serialization::IReader* reader, void* p_value) = 0;
 
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,
             void* p_value) = 0;

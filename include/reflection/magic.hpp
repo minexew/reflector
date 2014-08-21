@@ -27,7 +27,7 @@
 #pragma once
 
 #include "base.hpp"
-#include "generated.hpp"
+#include "generated_magic.hpp"
 
 #define REFL_FIELD(field_, ...) \
             ::reflection::makeField(#field_, &::reflection::fieldGetter<ThisClass, decltype(field_), &ThisClass::field_>,\

@@ -39,24 +39,34 @@
 #define DECLARE_REFLECTION(name_, type_, template_) class name_: public ITypeReflection {\
 public:\
     name_() {}\
-    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {\
-        type_& value = *reinterpret_cast<type_*>(p_value);\
-        return serialization::SerializationManager<type_>::deserialize(err, reader, value);\
-    }\
+\
     virtual bool isPolymorphic() override { return false; }\
+    virtual const char* staticTypeName() override { return #type_; }\
     virtual const char* typeName(const void* p_value) override { return #type_; }\
     virtual const UUID_t* uuidOrNull(const void* p_value) override { return nullptr; }\
-    virtual serialization::Tag_t getSerializationTag() override { return serialization::Serializer<type_>::TAG; }\
+\
     virtual bool serialize(IErrorHandler* err, serialization::IWriter* writer, const void* p_value)  override {\
         type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
         return serialization::SerializationManager<type_>::serialize(err, writer, value);\
     }\
+    virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {\
+        type_& value = *reinterpret_cast<type_*>(p_value);\
+        return serialization::SerializationManager<type_>::deserialize(err, reader, value);\
+    }\
+    virtual bool serializeTypeInformation(IErrorHandler* err, serialization::IWriter* writer, const void* p_value)  override {\
+        type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
+        return serialization::SerializationManager<type_>::serializeTypeInformation(err, writer, value);\
+    }\
+    virtual bool verifyTypeInformation(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {\
+        type_& value = *reinterpret_cast<type_*>(p_value);\
+        return serialization::SerializationManager<type_>::verifyTypeInformation(err, reader, value);\
+    }\
+\
     virtual bool setFromString(IErrorHandler* err, const char* str, size_t strLen,\
             void* p_value) override {\
         type_& value = *reinterpret_cast<type_*>(p_value);\
         return template_::fromString(err, str, strLen, value);\
     }\
-    virtual const char* staticTypeName() override { return #type_; }\
     virtual bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, uint32_t fieldMask,\
             const void* p_value) override {\
         type_ const& value = *reinterpret_cast<type_ const*>(p_value);\
