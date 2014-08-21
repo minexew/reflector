@@ -60,17 +60,21 @@ public:
             field = fieldGetter(inst);
         }
 
-        operator void* () { return field; }
-        operator const void* () const { return field; }
+        void* ptr() { return field; }
+        const void* ptr() const { return field; }
 
         bool deserialize(serialization::IReader* reader) { return refl->deserialize(err, reader, field); }
+        bool deserialize(IErrorHandler* err, serialization::IReader* reader) { return refl->deserialize(err, reader, field); }
+
+        bool serialize(serialization::IWriter* writer) const { return refl->serialize(err, writer, field); }
+        bool serialize(IErrorHandler* err, serialization::IWriter* writer) const { return refl->serialize(err, writer, field); }
+
         bool isPolymorphic() const { return refl->isPolymorphic(); }
         template <typename T> bool isType() const { return refl == reflectionForType2<T>(); }
         const char* staticTypeName() const { return refl->staticTypeName(); }
         bool toString(char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         bool toString(IErrorHandler* err, char*& buf, size_t& bufSize) const { return refl->toString(err, buf, bufSize, FIELD_STATE, field); }
         const char* typeName() const { return refl->typeName(field); }
-        bool serialize(serialization::IWriter* writer) const { return refl->serialize(err, writer, field); }
         bool setFromString(IErrorHandler* err, const char* str) { return refl->setFromString(err, str, strlen(str), field); }
 
 #ifndef REFLECTOR_AVOID_STL
@@ -118,10 +122,6 @@ public:
         return numFields;
     }
 
-    operator size_t () const {  // deprecated
-        return numFields;
-    }
-
     Ptr_t inst;
     FieldSet_t const* fieldSet;
     size_t numFields;
@@ -154,7 +154,7 @@ void reflectPrint(T& instance, uint32_t fieldMask = FIELD_STATE | FIELD_CONFIG) 
 
     auto fields = reflectFields(instance);
 
-    for (size_t i = 0; i < fields; i++) {
+    for (size_t i = 0; i < fields.count(); i++) {
         const auto& field = fields[i];
 
         if (!(field.systemFlags & fieldMask))

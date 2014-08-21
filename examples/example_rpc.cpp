@@ -26,16 +26,30 @@
 
 #include <reflection/api.hpp>
 #include <reflection/basic_types.hpp>
+#include <reflection/class.hpp>
 #include <reflection/rpc.hpp>
 
 #include <utility/memory_reader_writer.hpp>
 
 using std::string;
 
+struct CachePolicy_t {
+    string policy;
+    uint64_t maxDataUsage;
+    int timeout;
+
+    REFL_BEGIN("CachePolicy_t", 1)
+        REFL_FIELD(policy)
+        REFL_FIELD(maxDataUsage)
+        REFL_FIELD(timeout)
+    REFL_END
+};
+
 // SERVER
 
-int getResourceFromServer(const string& resourceName, unsigned int maxSize, bool cached) {
-    printf("[SERVER]\tgetResourceFromServer(%s, %u, %d)\n", resourceName.c_str(), maxSize, cached);
+int getResourceFromServer(const string& resourceName, unsigned int maxSize, const CachePolicy_t& cp) {
+    printf("[SERVER]\tgetResourceFromServer(%s, %u, [%s, max %u kB, %d s])\n", resourceName.c_str(), maxSize,
+            cp.policy.c_str(), (unsigned) cp.maxDataUsage, cp.timeout);
 
     return 42;
 }
@@ -44,12 +58,14 @@ DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
 
 // CLIENT
 
-int getResourceFromServer(const string& resource, unsigned int maxSize, bool cached);
+int getResourceFromServer(const string& resource, unsigned int maxSize, const CachePolicy_t& cp);
 
 RPC_SERIALIZED_3(getResourceFromServerRPC, getResourceFromServer)
 
 int main(int argc, char* argv[]) {
-    int result = getResourceFromServerRPC("/test", 3000, true);
+    CachePolicy_t cp = {"static-only", 4096, 3600};
+    int result = getResourceFromServerRPC("/test", 3000, cp);
+
     printf("[CLIENT]\tResult is %d\n", result);
 }
 

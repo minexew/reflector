@@ -70,13 +70,13 @@ int postDeserializationHook(IErrorHandler* err, IReader* reader, T& value_out, i
 }
 
 template <class Fields>
-int preInstanceDeserializationHook(IErrorHandler* err, IWriter* writer, const char* className,
+int preInstanceDeserializationHook(IErrorHandler* err, IReader* reader, const char* className,
         Fields& fields, REFL_MATCH_1) {
     return -1;
 }
 
 template <class Fields>
-int postInstanceDeserializationHook(IErrorHandler* err, IWriter* writer, const char* className,
+int postInstanceDeserializationHook(IErrorHandler* err, IReader* reader, const char* className,
         Fields& fields, int deserializationResult, REFL_MATCH_1) {
     return -1;
 }
@@ -135,16 +135,16 @@ public:
     }
 
     template <typename Fields>
-    static bool deserializeInstance(IErrorHandler* err, IWriter* writer,
+    static bool deserializeInstance(IErrorHandler* err, IReader* reader,
             const char* className, const Fields& fields) {
-        int hrc = preInstanceDeserializationHook(err, writer, className, fields, REFL_MATCH);
+        int hrc = preInstanceDeserializationHook(err, reader, className, fields, REFL_MATCH);
 
         if (hrc >= 0)
             return (bool) hrc;
 
-        int rc = InstanceSerializer<T>::deserializeInstance(err, writer, className, fields);
+        int rc = InstanceSerializer<T>::deserializeInstance(err, reader, className, fields);
 
-        hrc = postInstanceDeserializationHook(err, writer, className, fields, rc, REFL_MATCH);
+        hrc = postInstanceDeserializationHook(err, reader, className, fields, rc, REFL_MATCH);
 
         if (hrc >= 0)
             return (bool) hrc;

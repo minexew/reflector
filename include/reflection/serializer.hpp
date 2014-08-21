@@ -290,23 +290,50 @@ public:
 
     template <typename Fields>
     static bool serializeInstance(IErrorHandler* err, IWriter* writer,
-            const char* className, Fields& fields) {
+            const char* className, const Fields& fields) {
         if (!writeTag(err, writer, TAG))
             return false;
 
         BufString_t cn;
         bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
 
-        uint32_t numFields = fields;
+        uint32_t numFields = fields.count();
 
         if (!Serializer<BufString_t>::serialize(err, writer, cn)
                 || !Serializer<uint32_t>::serialize(err, writer, numFields))
             return false;
 
-        for (size_t i = 0; i < fields; i++) {
+        for (size_t i = 0; i < fields.count(); i++) {
             const auto& field = fields[i];
 
-            if (!field.refl->serialize(err, writer, field))
+            if (!field.serialize(err, writer))
+                return false;
+        }
+
+        return true;
+    }
+
+    template <typename Fields>
+    static bool deserializeInstance(IErrorHandler* err, IReader* reader,
+            const char* className, Fields& fields) {
+        if (!checkTag(err, reader, TAG))
+            return false;
+
+        BufString_t cn;
+        uint32_t numFields;
+
+        if (!Serializer<BufString_t>::deserialize(err, reader, cn)
+                || !Serializer<uint32_t>::deserialize(err, reader, numFields))
+            return false;
+
+        if (cn.buf == nullptr || strcmp(cn.buf, className) != 0)
+            return err->errorf("TypeMismatch", "Unexpected class type `%s` when deserializing an instance of `%s`",
+                    cn.buf, className), false;
+
+        for (size_t i = 0; i < fields.count(); i++) {
+            auto field = fields[i];
+
+            if (!field.deserialize(err, reader))
                 return false;
         }
 
@@ -322,13 +349,13 @@ public:
         BufString_t cn, str;
         //bufStringSet(err, cn.buf, cn.bufSize, className, strlen(className));
 
-        uint32_t numFields = fields;
+        uint32_t numFields = fields.count();
 
         if (/*!Serializer<BufString_t>::serialize(err, writer, cn)
                 || */!Serializer<uint32_t>::serialize(err, writer, numFields))
             return false;
 
-        for (size_t i = 0; i < fields; i++) {
+        for (size_t i = 0; i < fields.count(); i++) {
             const auto& field = fields[i];
 
             const char* name = field.name;

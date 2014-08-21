@@ -41,7 +41,7 @@ template <typename T>
 bool configure(T& inst) {
     auto fields = reflectFields(inst);
 
-    for (size_t i = 0; i < fields; i++) {
+    for (size_t i = 0; i < fields.count(); i++) {
         auto field = fields[i];
 
         if (field.systemFlags & FIELD_CONFIG) {

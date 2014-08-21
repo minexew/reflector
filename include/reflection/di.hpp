@@ -42,7 +42,7 @@ template <typename T>
 bool di(T& inst) {
     auto fields = reflectFields(inst);
 
-    for (size_t i = 0; i < fields; i++) {
+    for (size_t i = 0; i < fields.count(); i++) {
         auto field = fields[i];
 
         if (field.systemFlags & FIELD_DEPENDENCY) {
@@ -52,7 +52,7 @@ bool di(T& inst) {
             if (!diMgr->resolve(err, *field.uuid, iface))
                 return false;
 
-            *reinterpret_cast<void**>((void*) field) = iface;
+            *reinterpret_cast<void**>(field.ptr()) = iface;
         }
     }
 

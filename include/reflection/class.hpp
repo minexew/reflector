@@ -42,7 +42,7 @@ bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, const Fi
     AllocGuard guard(fieldAsString);
     bool first = true;
 
-    for (size_t i = 0; i < fields; i++) {
+    for (size_t i = 0; i < fields.count(); i++) {
         const auto& field = fields[i];
 
         if (!(field.systemFlags & fieldMask))
@@ -75,7 +75,12 @@ bool fieldsToBufString(IErrorHandler* err, char*& buf, size_t& bufSize, const Fi
 template <class C>
 class ClassReflection : public ITypeReflection {
     virtual bool deserialize(IErrorHandler* err, serialization::IReader* reader, void* p_value) override {
-        return err->notImplemented("reflection::ClassReflection::deserialize"), false;
+        C& instance = *reinterpret_cast<C*>(p_value);
+
+        auto fields = reflectFields(instance);
+
+        return serialization::SerializationManager<C>::deserializeInstance(
+                err, reader, instance.reflection_classId(REFL_MATCH), fields);
     }
 
     virtual serialization::Tag_t getSerializationTag() override {
@@ -96,7 +101,7 @@ class ClassReflection : public ITypeReflection {
         const C& instance = *reinterpret_cast<const C*>(p_value);
 
         const auto fields = reflectFields(instance);
-        //return serializeInstance(err, writer, instance.reflection_className(REFL_MATCH), fields);
+
         return serialization::SerializationManager<C>::serializeInstance(
                 err, writer, instance.reflection_classId(REFL_MATCH), fields);
     }

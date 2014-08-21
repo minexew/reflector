@@ -42,7 +42,7 @@ struct Command_t {
 
 template <class Fields>
 bool setDashArgument(Fields& fields, int argc, char* argv[], int& i, const char* programName, char argSpecified[]) {
-    for (size_t j = 0; j < fields; j++) {
+    for (size_t j = 0; j < fields.count(); j++) {
         auto field = fields[j];
 
         const char* spec = field.params;
@@ -88,7 +88,7 @@ bool setDashArgument(Fields& fields, int argc, char* argv[], int& i, const char*
 
 template <class Fields>
 bool setPlainArgument(Fields& fields, int argc, char* argv[], int& i, const char* programName, char argSpecified[]) {
-    for (size_t j = 0; j < fields; j++) {
+    for (size_t j = 0; j < fields.count(); j++) {
         if (argSpecified[j])
             continue;
 
