@@ -34,7 +34,7 @@ using std::string;
 
 // SERVER
 
-int getResourceFromServer(string resourceName, unsigned int maxSize, bool cached) {
+int getResourceFromServer(const string& resourceName, unsigned int maxSize, bool cached) {
     printf("[SERVER]\tgetResourceFromServer(%s, %u, %d)\n", resourceName.c_str(), maxSize, cached);
 
     return 42;
@@ -44,7 +44,7 @@ DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
 
 // CLIENT
 
-int getResourceFromServer(string resource, unsigned int maxSize, bool cached);
+int getResourceFromServer(const string& resource, unsigned int maxSize, bool cached);
 
 RPC_SERIALIZED_3(getResourceFromServerRPC, getResourceFromServer)
 
