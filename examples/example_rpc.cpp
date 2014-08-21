@@ -49,11 +49,16 @@ struct CachePolicy_t {
 
 // Client-side function usage
 
+string getGreeting();
 int getResourceFromServer(const string& resource, unsigned int maxSize, const CachePolicy_t& cp);
 
-RPC_SERIALIZED_3(getResourceFromServerRPC, getResourceFromServer)
+RPC_SERIALIZED(getGreetingRPC, getGreeting)
+RPC_SERIALIZED(getResourceFromServerRPC, getResourceFromServer)
 
 int main(int argc, char* argv[]) {
+    auto hello = getGreetingRPC();
+    printf("%s\n\n", hello.c_str());
+
     CachePolicy_t cp = {"static-only", 4096, 3600};
     int result = getResourceFromServerRPC("/test", 3000, cp);
 
@@ -62,6 +67,10 @@ int main(int argc, char* argv[]) {
 
 // Server-side function implementation
 
+string getGreeting() {
+    return "Hello World!";
+}
+
 int getResourceFromServer(const string& resourceName, unsigned int maxSize, const CachePolicy_t& cp) {
     printf("[SERVER]\tgetResourceFromServer(%s, %u, [%s, max %u kB, %d s])\n", resourceName.c_str(), maxSize,
             cp.policy.c_str(), (unsigned) cp.maxDataUsage, cp.timeout);
@@ -69,6 +78,7 @@ int getResourceFromServer(const string& resourceName, unsigned int maxSize, cons
     return 42;
 }
 
+DEFINE_RPC_SERIALIZED(getGreetingWrapper, getGreeting)
 DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
 
 // Implementation of byte-level RPC transport
@@ -95,7 +105,9 @@ namespace rpc {
         auto w1 = io.writePos;
 
         // In practice, this would be processed server-side
-        if (rpcFunctionName == "getResourceFromServer")
+        if (rpcFunctionName == "getGreeting")
+            assert(getGreetingWrapper(&io, &io));
+        else if (rpcFunctionName == "getResourceFromServer")
             assert(getResourceFromServerWrapper(&io, &io));
         else
             fprintf(stderr, "Invalid RPC %s\n", rpcFunctionName.c_str());
@@ -112,6 +124,10 @@ namespace rpc {
 #include <reflection/default_error_handler.cpp>
 
 /*
+[RPC]   0 bytes of arguments to server
+[RPC]   13 bytes of response from server
+Hello World!
+
 [RPC]   24 bytes of arguments to server
 [SERVER]        getResourceFromServer(/test, 3000, [static-only, max 4096 kB, 3600 s])
 [RPC]   1 bytes of response from server

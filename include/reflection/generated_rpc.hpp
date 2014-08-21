@@ -6,16 +6,9 @@
 
 namespace rpc {
 
-#define RPC_SERIALIZED_0(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_);\
-}
-
-template <typename Return>
+template <const char* functionName, typename Return>
 Return rpcSerializedCall(
-        const char* functionName) {
+        ) {
     IWriter* writer;
     IReader* reader;
 
@@ -31,6 +24,16 @@ Return rpcSerializedCall(
 }
 
 template <typename Return>
+struct MakeFunctionPointer0 {
+    typedef Return (*type)();
+};
+
+template <const char* functionName, typename Return>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer0<Return>::type getRpcSerializedCall(Return (*functionNull)()) {
+    return &rpcSerializedCall<functionName, Return>;
+}
+
+template <typename Return>
 bool rpcSerializedExecute(Return (*function)(), IReader* reader, IWriter* writer) {
     const Return result = function();
 
@@ -39,16 +42,9 @@ bool rpcSerializedExecute(Return (*function)(), IReader* reader, IWriter* writer
     return true;
 }
 
-#define RPC_SERIALIZED_1(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0);\
-}
-
-template <typename Return, typename Arg0>
+template <const char* functionName, typename Return, typename Arg0>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0) {
+        Arg0 const& arg0) {
     IWriter* writer;
     IReader* reader;
 
@@ -63,6 +59,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0>
+struct MakeFunctionPointer1 {
+    typedef Return (*type)(Arg0 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer1<Return, Arg0>::type getRpcSerializedCall(Return (*functionNull)(Arg0)) {
+    return &rpcSerializedCall<functionName, Return, Arg0>;
 }
 
 template <typename Return, typename Arg0>
@@ -78,17 +84,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0), IReader* reader, IWriter* wr
     return true;
 }
 
-#define RPC_SERIALIZED_2(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1);\
-}
-
-template <typename Return, typename Arg0, typename Arg1>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1) {
+        Arg0 const& arg0, Arg1 const& arg1) {
     IWriter* writer;
     IReader* reader;
 
@@ -104,6 +102,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1>
+struct MakeFunctionPointer2 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2<Return, Arg0, Arg1>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1>;
 }
 
 template <typename Return, typename Arg0, typename Arg1>
@@ -121,18 +129,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1), IReader* reader, IWrit
     return true;
 }
 
-#define RPC_SERIALIZED_3(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2) {
     IWriter* writer;
     IReader* reader;
 
@@ -149,6 +148,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2>
+struct MakeFunctionPointer3 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer3<Return, Arg0, Arg1, Arg2>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2>
@@ -168,19 +177,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2), IReader* reader,
     return true;
 }
 
-#define RPC_SERIALIZED_4(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3) {
     IWriter* writer;
     IReader* reader;
 
@@ -198,6 +197,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+struct MakeFunctionPointer4 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer4<Return, Arg0, Arg1, Arg2, Arg3>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
@@ -219,20 +228,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3), IReader* r
     return true;
 }
 
-#define RPC_SERIALIZED_5(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4) {
     IWriter* writer;
     IReader* reader;
 
@@ -251,6 +249,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+struct MakeFunctionPointer5 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer5<Return, Arg0, Arg1, Arg2, Arg3, Arg4>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
@@ -274,21 +282,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4), IRea
     return true;
 }
 
-#define RPC_SERIALIZED_6(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
-        decltype(::reflection::arg5TypeIn(functionName_)) const& arg5) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5) {
     IWriter* writer;
     IReader* reader;
 
@@ -308,6 +304,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+struct MakeFunctionPointer6 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer6<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
@@ -333,22 +339,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)
     return true;
 }
 
-#define RPC_SERIALIZED_7(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
-        decltype(::reflection::arg5TypeIn(functionName_)) const& arg5,\
-        decltype(::reflection::arg6TypeIn(functionName_)) const& arg6) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6) {
     IWriter* writer;
     IReader* reader;
 
@@ -369,6 +362,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+struct MakeFunctionPointer7 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer7<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
@@ -396,23 +399,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5,
     return true;
 }
 
-#define RPC_SERIALIZED_8(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
-        decltype(::reflection::arg5TypeIn(functionName_)) const& arg5,\
-        decltype(::reflection::arg6TypeIn(functionName_)) const& arg6,\
-        decltype(::reflection::arg7TypeIn(functionName_)) const& arg7) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7) {
     IWriter* writer;
     IReader* reader;
 
@@ -434,6 +423,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+struct MakeFunctionPointer8 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer8<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
@@ -463,24 +462,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5,
     return true;
 }
 
-#define RPC_SERIALIZED_9(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
-        decltype(::reflection::arg5TypeIn(functionName_)) const& arg5,\
-        decltype(::reflection::arg6TypeIn(functionName_)) const& arg6,\
-        decltype(::reflection::arg7TypeIn(functionName_)) const& arg7,\
-        decltype(::reflection::arg8TypeIn(functionName_)) const& arg8) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8) {
     IWriter* writer;
     IReader* reader;
 
@@ -503,6 +487,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+struct MakeFunctionPointer9 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer9<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
@@ -534,25 +528,9 @@ bool rpcSerializedExecute(Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5,
     return true;
 }
 
-#define RPC_SERIALIZED_10(localName_, functionName_)\
-inline decltype(::reflection::returnValueOf(functionName_)) localName_(\
-        decltype(::reflection::arg0TypeIn(functionName_)) const& arg0,\
-        decltype(::reflection::arg1TypeIn(functionName_)) const& arg1,\
-        decltype(::reflection::arg2TypeIn(functionName_)) const& arg2,\
-        decltype(::reflection::arg3TypeIn(functionName_)) const& arg3,\
-        decltype(::reflection::arg4TypeIn(functionName_)) const& arg4,\
-        decltype(::reflection::arg5TypeIn(functionName_)) const& arg5,\
-        decltype(::reflection::arg6TypeIn(functionName_)) const& arg6,\
-        decltype(::reflection::arg7TypeIn(functionName_)) const& arg7,\
-        decltype(::reflection::arg8TypeIn(functionName_)) const& arg8,\
-        decltype(::reflection::arg9TypeIn(functionName_)) const& arg9) {\
-    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\
-             #functionName_, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);\
-}
-
-template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 Return rpcSerializedCall(
-        const char* functionName, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8, Arg9 const& arg9) {
+        Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8, Arg9 const& arg9) {
     IWriter* writer;
     IReader* reader;
 
@@ -576,6 +554,16 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+struct MakeFunctionPointer10 {
+    typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&, Arg9 const&);
+};
+
+template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer10<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::type getRpcSerializedCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)) {
+    return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>

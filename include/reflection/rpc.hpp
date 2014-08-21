@@ -26,6 +26,19 @@
 
 #pragma once
 
+#ifndef _MSC_VER
+#define RPC_CONSTEXPR constexpr
+#define RPC_CONSTEXPR_FUNC constexpr
+#else
+#define RPC_CONSTEXPR static const
+#define RPC_CONSTEXPR_FUNC inline
+#endif
+
+#define RPC_SERIALIZED(localName_, functionName_)\
+namespace { char localName_##_rpcFunctionName_[] = #functionName_; }\
+RPC_CONSTEXPR auto localName_ = ::rpc::getRpcSerializedCall<\
+        localName_##_rpcFunctionName_>(decltype(&functionName_)(nullptr));\
+
 #define DEFINE_RPC_SERIALIZED(wrapperName_, functionName_)\
 inline bool wrapperName_(::serialization::IReader* reader, ::serialization::IWriter* writer) {\
     return ::rpc::rpcSerializedExecute(functionName_, reader, writer);\

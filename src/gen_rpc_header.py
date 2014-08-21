@@ -26,62 +26,66 @@
 
 MAX_ARGS = 10
 
-def generate_RPC_SERIALIZED_n(num_args):
-    print('#define RPC_SERIALIZED_%d(localName_, functionName_)\\' % num_args)
-    print('inline decltype(::reflection::returnValueOf(functionName_)) localName_(\\')
-
-    for i in range(0, num_args):
-        print('        decltype(::reflection::arg%dTypeIn(functionName_)) const& arg%d' % (i, i), end='')
-        if i + 1 < num_args: print(',\\')
-
-    print(') {\\')
-    print('    return ::rpc::rpcSerializedCall<decltype(::reflection::returnValueOf(functionName_))>(\\')
-    print('             ' + ', '.join(['#functionName_'] + list('arg%d' % i for i in range(0, num_args))) + ');\\')
-
-    print('}')
-    print()
-
 def generate_rpcSerializedCall(num_args):
-    template_args = 'typename Return'
-
-    for i in range(0, num_args):
-        if template_args != '': template_args += ', '
-        template_args += 'typename Arg%d' % i
+    template_args = ', '.join(['const char* functionName', 'typename Return'] +
+        list('typename Arg%d' % i for i in range(0, num_args)) +
+        [])
 
     print('template <' + template_args + '>')
     print('Return rpcSerializedCall(')
-    print('        ' + ', '.join(['const char* functionName'] + list('Arg%d const& arg%d' % (i, i) for i in range(0, num_args))) + ') {')
+    print('        ' + ', '.join('Arg%d const& arg%d' % (i, i) for i in range(0, num_args)) + ') {')
     print('    IWriter* writer;')
     print('    IReader* reader;')
-    print('')
+    print()
     print('    assert(beginRPC(functionName, writer, reader));')
-    print('')
+    print()
 
     for i in range(0, num_args):
         print('    assert(reflectSerialize(arg%d, writer));' % i)
-        if i + 1 == num_args: print('')
+        if i + 1 == num_args: print()
 
     print('    assert(invokeRPC());')
-    print('')
+    print()
     print('    Return result;')
     print('    assert(reflectDeserialize(result, reader));')
-    print('')
+    print()
     print('    endRPC();')
     print('    return result;')
     print('}')
-    print('')
+    print()
+
+def generate_getRpcSerializedCall(num_args):
+    template_args = ', '.join(['const char* functionName', 'typename Return'] +
+        list('typename Arg%d' % i for i in range(0, num_args)) +
+        [])
+
+    template_arg_list = ', '.join(['functionName', 'Return'] +
+        list('Arg%d' % i for i in range(0, num_args)) +
+        [])
+
+    arg_types = ', '.join('Arg%d' % i for i in range(0, num_args))
+    func_type = 'Return (*)(' + arg_types + ')'
+    func_variable = 'Return (*functionNull)(' + arg_types + ')'
+
+    print('template <' + ', '.join(['typename Return'] + list('typename Arg%d' % i for i in range(0, num_args))) + '>')
+    print('struct MakeFunctionPointer%d {' % num_args)
+    print('    typedef Return (*type)(' + ', '.join('Arg%d const&' % i for i in range(0, num_args)) + ');')
+    print('};')
+    print()
+
+    print('template <' + template_args + '>')
+    print(('RPC_CONSTEXPR_FUNC typename MakeFunctionPointer%d<' % num_args) +
+        ', '.join(['Return'] + list('Arg%d' % i for i in range(0, num_args))) +
+        '>::type getRpcSerializedCall(' + func_variable + ') {')
+    print('    return &rpcSerializedCall<' + template_arg_list + '>;')
+    print('}')
+    print()
 
 def generate_rpcSerializedExecute(num_args):
-    template_args = 'typename Return'
-    arg_types = ''
+    template_args = ', '.join(['typename Return'] +
+        list('typename Arg%d' % i for i in range(0, num_args)))
 
-    for i in range(0, num_args):
-        if template_args != '': template_args += ', '
-        if arg_types != '': arg_types += ', '
-
-        template_args += 'typename Arg%d' % i
-        arg_types += 'Arg%d' % i
-
+    arg_types = ', '.join('Arg%d' % i for i in range(0, num_args))
     func_variable = 'Return (*function)(' + arg_types + ')'
 
     print('template <' + template_args + '>')
@@ -89,19 +93,19 @@ def generate_rpcSerializedExecute(num_args):
     print('bool rpcSerializedExecute(' + func_variable + ', IReader* reader, IWriter* writer) {')
     for i in range(0, num_args):
         print('    typename std::remove_cv<typename std::remove_reference<Arg%d>::type>::type arg%d;' % (i, i))
-        if i + 1 == num_args: print('')
+        if i + 1 == num_args: print()
 
     for i in range(0, num_args):
         print('    if (!reflectDeserialize(arg%d, reader)) return false;' % i)
-        if i + 1 == num_args: print('')
+        if i + 1 == num_args: print()
 
     print('    const Return result = function(' + ', '.join('arg%d' % i for i in range(0, num_args)) + ');')
-    print('')
+    print()
     print('    if (!reflectSerialize(result, writer)) return false;')
-    print('')
+    print()
     print('    return true;')
     print('}')
-    print('')
+    print()
 
 print('#pragma once')
 print()
@@ -114,8 +118,8 @@ print('namespace rpc {')
 print()
 
 for num_args in range(0, MAX_ARGS + 1):
-    generate_RPC_SERIALIZED_n(num_args)
     generate_rpcSerializedCall(num_args)
+    generate_getRpcSerializedCall(num_args)
     generate_rpcSerializedExecute(num_args)
 
 print('}')
