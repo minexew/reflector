@@ -31,6 +31,8 @@
 
 #include <utility/memory_reader_writer.hpp>
 
+// Type declarations common for server and client
+
 using std::string;
 
 struct CachePolicy_t {
@@ -45,18 +47,7 @@ struct CachePolicy_t {
     REFL_END
 };
 
-// SERVER
-
-int getResourceFromServer(const string& resourceName, unsigned int maxSize, const CachePolicy_t& cp) {
-    printf("[SERVER]\tgetResourceFromServer(%s, %u, [%s, max %u kB, %d s])\n", resourceName.c_str(), maxSize,
-            cp.policy.c_str(), (unsigned) cp.maxDataUsage, cp.timeout);
-
-    return 42;
-}
-
-DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
-
-// CLIENT
+// Client-side function usage
 
 int getResourceFromServer(const string& resource, unsigned int maxSize, const CachePolicy_t& cp);
 
@@ -69,12 +60,27 @@ int main(int argc, char* argv[]) {
     printf("[CLIENT]\tResult is %d\n", result);
 }
 
-// RPC TRANSPORT IMPLEMENTATION
+// Server-side function implementation
+
+int getResourceFromServer(const string& resourceName, unsigned int maxSize, const CachePolicy_t& cp) {
+    printf("[SERVER]\tgetResourceFromServer(%s, %u, [%s, max %u kB, %d s])\n", resourceName.c_str(), maxSize,
+            cp.policy.c_str(), (unsigned) cp.maxDataUsage, cp.timeout);
+
+    return 42;
+}
+
+DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
+
+// Implementation of byte-level RPC transport
+// In this example, we just stuff everything into a buffer
 
 namespace rpc {
     string rpcFunctionName;
     utility::MemoryReaderWriter io;
 
+    // Called by client when initiating a RPC request
+    // Returned writer and reader are used for serializing the arguments and deserializing
+    // the response, respectively
     bool beginRPC(const char* functionName, IWriter*& writer_out, IReader*& reader_out) {
         rpcFunctionName = functionName;
         writer_out = &io;
@@ -82,10 +88,13 @@ namespace rpc {
         return true;
     }
 
+    // Called after all arguments are written throught the provided reader
+    // After this function returns, the client will read the response
     bool invokeRPC() {
         printf("[RPC]\t%u bytes of arguments to server\n", unsigned(io.writePos));
         auto w1 = io.writePos;
 
+        // In practice, this would be processed server-side
         if (rpcFunctionName == "getResourceFromServer")
             assert(getResourceFromServerWrapper(&io, &io));
         else
@@ -103,8 +112,8 @@ namespace rpc {
 #include <reflection/default_error_handler.cpp>
 
 /*
-[rpc] 9 bytes of arguments to server
-[SERVER] getResourceFromServer(/test, 3000, 1)
-[rpc] 1 bytes of response from server
-[CLIENT] Result is: 42
+[RPC]   41 bytes of arguments to server
+[SERVER]        getResourceFromServer(/test, 3000, [static-only, max 4096 kB, 3600 s])
+[RPC]   1 bytes of response from server
+[CLIENT]        Result is 42
 */
