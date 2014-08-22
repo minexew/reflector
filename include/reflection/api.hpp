@@ -29,6 +29,8 @@
 #include "bufstring.hpp"
 #include "base.hpp"
 
+#include <type_traits>
+
 #ifndef REFLECTOR_AVOID_STL
 #include <string>
 #endif
@@ -204,12 +206,14 @@ std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
 }
 #endif
 
+#ifndef REFLECTOR_AVOID_STL
 template <typename T>
 bool reflectFromString(T& inst, const std::string& str) {
     ITypeReflection* refl = reflectionForType(inst);
 
     return refl->setFromString(err, str.c_str(), str.length(), reinterpret_cast<void*>(&inst));
 }
+#endif
 
 template <typename T>
 const char* reflectTypeName() {

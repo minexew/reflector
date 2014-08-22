@@ -30,6 +30,10 @@
 #include "base.hpp"
 #include "bufstring.hpp"
 
+#ifndef REFLECTOR_AVOID_STL
+#include <string>
+#endif
+
 namespace serialization {
 using reflection::BufString_t;
 

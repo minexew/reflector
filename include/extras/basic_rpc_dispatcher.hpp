@@ -26,34 +26,24 @@
 
 #pragma once
 
-#include "base.hpp"
+#include <reflection/rpc.hpp>
 
-#ifndef _MSC_VER
-#define RPC_CONSTEXPR constexpr
-#define RPC_CONSTEXPR_FUNC constexpr
-#else
-#define RPC_CONSTEXPR static const
-#define RPC_CONSTEXPR_FUNC inline
-#endif
+namespace basic_rpc_dispatcher {
+    struct RpcFunction_t {
+        const char* functionName;
+        bool (*callback)(reflection::IErrorHandler* err, serialization::IReader* reader, serialization::IWriter* writer);
+    };
 
-#define RPC_SERIALIZED(localName_, functionName_)\
-namespace { char localName_##_rpcFunctionName_[] = #functionName_; }\
-RPC_CONSTEXPR auto localName_ = ::rpc::getRpcSerializedCall<\
-        localName_##_rpcFunctionName_>(decltype(&functionName_)(nullptr));\
+    template <const RpcFunction_t* entries>
+    bool dispatch(const char* functionName, serialization::IReader* reader, serialization::IWriter* writer) {
+        auto err = reflection::err;
 
-#define DEFINE_RPC_SERIALIZED(wrapperName_, functionName_)\
-inline bool wrapperName_(::reflection::IErrorHandler* err,\
-        ::serialization::IReader* reader, ::serialization::IWriter* writer) {\
-    return ::rpc::rpcSerializedExecute(functionName_, reader, writer);\
-}\
+        for (size_t i = 0; entries[i].functionName != nullptr; i++) {
+            if (strcmp(entries[i].functionName, functionName) == 0)
+                return entries[i].callback(err, reader, writer);
+        }
 
-namespace rpc {
-    using namespace reflection;
-    using namespace serialization;
-
-    bool beginRPC(const char* functionName, IWriter*& writer_out, IReader*& reader_out);
-    bool invokeRPC();
-    void endRPC();
+        err->errorf("UndefinedRpcFunction", "Undefined RPC function `%s`", functionName);
+        return false;
+    }
 }
-
-#include "generated_rpc.hpp"

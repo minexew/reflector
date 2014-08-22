@@ -209,6 +209,13 @@ void help(const Command_t& cmd, const char* programName, bool full) {
     printf("\n");
 }
 
+template <typename Command>
+int singleCommandDispatch(int argc, char* argv[], const char* programName) {
+    static const Command_t cmd = {programName, programName, execute<Command>, help<Command>};
+
+    return cmd.execute(cmd, argc, argv, programName);
+}
+
 template <typename Command_t>
 int multiCommandDispatch(int argc, char* argv[], const char* programName, const Command_t* commands) {
     if (argc < 1) {
