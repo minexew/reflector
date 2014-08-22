@@ -42,16 +42,13 @@ RPC_CONSTEXPR auto localName_ = ::rpc::getRpcSerializedCall<\
         localName_##_rpcFunctionName_>(decltype(&functionName_)(nullptr));\
 
 #define DEFINE_RPC_SERIALIZED(wrapperName_, functionName_)\
-inline bool wrapperName_(::reflection::IErrorHandler* err,\
-        ::serialization::IReader* reader, ::serialization::IWriter* writer) {\
-    return ::rpc::rpcSerializedExecute(functionName_, reader, writer);\
-}\
+RPC_CONSTEXPR auto wrapperName_ = ::rpc::getRpcSerializedExecute<decltype(&functionName_), &functionName_>(&functionName_);\
 
 namespace rpc {
     using namespace reflection;
     using namespace serialization;
 
-    bool beginRPC(const char* functionName, IWriter*& writer_out, IReader*& reader_out);
+    bool beginRPC(const char* functionName, bool returnsValue, IWriter*& writer_out, IReader*& reader_out);
     bool invokeRPC();
     void endRPC();
 }

@@ -28,6 +28,13 @@
 
 #include <reflection/rpc.hpp>
 
+#define BEGIN_RPC_TABLE(rpcTable_) ::basic_rpc_dispatcher::RpcFunction_t rpcTable_[] = {\
+
+#define RPC_TABLE_ENTRY(name_, function_)\
+    {name_, ::rpc::getRpcSerializedExecute<decltype(&function_), &function_>(&function_)},
+
+#define END_RPC_TABLE {}};\
+
 namespace basic_rpc_dispatcher {
     struct RpcFunction_t {
         const char* functionName;

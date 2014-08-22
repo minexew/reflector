@@ -29,6 +29,7 @@
 #include <reflection/class.hpp>
 #include <reflection/rpc.hpp>
 
+#include <extras/basic_rpc_dispatcher.hpp>
 #include <utility/memory_reader_writer.hpp>
 
 // Type declarations common for server and client
@@ -49,15 +50,14 @@ struct CachePolicy_t {
 
 // Client-side function usage
 
-string getGreeting();
+void sayHelloTo(const string& to);
 int getResourceFromServer(const string& resource, unsigned int maxSize, const CachePolicy_t& cp);
 
-RPC_SERIALIZED(getGreetingRPC, getGreeting)
+RPC_SERIALIZED(sayHelloToRPC, sayHelloTo)
 RPC_SERIALIZED(getResourceFromServerRPC, getResourceFromServer)
 
 int main(int argc, char* argv[]) {
-    auto hello = getGreetingRPC();
-    printf("%s\n\n", hello.c_str());
+    sayHelloToRPC("me");
 
     CachePolicy_t cp = {"static-only", 4096, 3600};
     int result = getResourceFromServerRPC("/test", 3000, cp);
@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
 
 // Server-side function implementation
 
-string getGreeting() {
-    return "Hello World!";
+void sayHelloTo(const string& to) {
+    printf("[SERVER]\tsayHelloTo(%s)\n", to.c_str());
 }
 
 int getResourceFromServer(const string& resourceName, unsigned int maxSize, const CachePolicy_t& cp) {
@@ -78,21 +78,25 @@ int getResourceFromServer(const string& resourceName, unsigned int maxSize, cons
     return 42;
 }
 
-DEFINE_RPC_SERIALIZED(getGreetingWrapper, getGreeting)
-DEFINE_RPC_SERIALIZED(getResourceFromServerWrapper, getResourceFromServer)
+BEGIN_RPC_TABLE(rpcTable)
+    RPC_TABLE_ENTRY("sayHelloTo",               sayHelloTo)
+    RPC_TABLE_ENTRY("getResourceFromServer",    getResourceFromServer)
+END_RPC_TABLE
 
 // Implementation of byte-level RPC transport
 // In this example, we just stuff everything into a buffer
 
 namespace rpc {
     string rpcFunctionName;
+    bool rpcReturnsValue;
     utility::MemoryReaderWriter io;
 
     // Called by client when initiating a RPC request
     // Returned writer and reader are used for serializing the arguments and deserializing
     // the response, respectively
-    bool beginRPC(const char* functionName, IWriter*& writer_out, IReader*& reader_out) {
+    bool beginRPC(const char* functionName, bool returnsValue, IWriter*& writer_out, IReader*& reader_out) {
         rpcFunctionName = functionName;
+        rpcReturnsValue = returnsValue;
         writer_out = &io;
         reader_out = &io;
         return true;
@@ -104,15 +108,12 @@ namespace rpc {
         printf("[RPC]\t%u bytes of arguments to server\n", unsigned(io.writePos));
         auto w1 = io.writePos;
 
-        // In practice, this would be processed server-side
-        if (rpcFunctionName == "getGreeting")
-            assert(getGreetingWrapper(&io, &io));
-        else if (rpcFunctionName == "getResourceFromServer")
-            assert(getResourceFromServerWrapper(&io, &io));
-        else
-            fprintf(stderr, "Invalid RPC %s\n", rpcFunctionName.c_str());
+        if (!basic_rpc_dispatcher::dispatch<rpcTable>(rpcFunctionName.c_str(), &io, &io))
+            return false;
 
-        printf("[RPC]\t%u bytes of response from server\n", unsigned(io.writePos - w1));
+        if (rpcReturnsValue)
+            printf("[RPC]\t%u bytes of response from server\n", unsigned(io.writePos - w1));
+
         return true;
     }
 
