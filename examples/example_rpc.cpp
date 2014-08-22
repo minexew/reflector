@@ -58,6 +58,7 @@ RPC_SERIALIZED(getResourceFromServerRPC, getResourceFromServer)
 
 int main(int argc, char* argv[]) {
     sayHelloToRPC("me");
+    puts("");
 
     CachePolicy_t cp = {"static-only", 4096, 3600};
     int result = getResourceFromServerRPC("/test", 3000, cp);
@@ -125,9 +126,8 @@ namespace rpc {
 #include <reflection/default_error_handler.cpp>
 
 /*
-[RPC]   0 bytes of arguments to server
-[RPC]   13 bytes of response from server
-Hello World!
+[RPC]   3 bytes of arguments to server
+[SERVER]        sayHelloTo(me)
 
 [RPC]   24 bytes of arguments to server
 [SERVER]        getResourceFromServer(/test, 3000, [static-only, max 4096 kB, 3600 s])
