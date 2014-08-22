@@ -156,7 +156,10 @@ template <typename Command>
 void help(const Command_t& cmd, const char* programName, bool full) {
     auto fields = reflection::reflectFieldsStatic<Command>();
 
-    printf("usage: %s %s", programName, cmd.commandName);
+    if (cmd.commandName != nullptr)
+        printf("usage: %s %s", programName, cmd.commandName);
+    else
+        printf("usage: %s", programName);
 
     for (size_t j = 0; j < fields.count(); j++) {
         const auto& field = fields[j];
@@ -210,8 +213,8 @@ void help(const Command_t& cmd, const char* programName, bool full) {
 }
 
 template <typename Command>
-int singleCommandDispatch(int argc, char* argv[], const char* programName) {
-    static const Command_t cmd = {programName, programName, execute<Command>, help<Command>};
+int singleCommandDispatch(int argc, char* argv[], const char* programName, const char* description = nullptr) {
+    static const Command_t cmd = {nullptr, description, execute<Command>, help<Command>};
 
     return cmd.execute(cmd, argc, argv, programName);
 }
