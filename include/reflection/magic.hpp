@@ -57,6 +57,12 @@
         return &fieldSet;\
     }\
 
+#define REFL_CLASS_NAME(className_, version_)\
+    static const char* reflection_s_classId(REFL_MATCH_0) { return className_ "," #version_; }\
+    static const char* reflection_s_className(REFL_MATCH_0) { return className_; }\
+    const char* reflection_classId(REFL_MATCH_0) const { return className_ "," #version_; }\
+    const char* reflection_className(REFL_MATCH_0) const { return className_; }\
+
 #define REFL_UUID(_0, _1, _2, _3) public:\
     static const ::reflection::UUID_t& reflection_s_uuid(REFL_MATCH_0) {\
         static const ::reflection::UUID_t uuid = {_0, _1, _2, _3};\
