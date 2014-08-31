@@ -167,4 +167,22 @@ ITypeReflection* reflectionForType(C);
 
 template <class C>
 ITypeReflection* reflectionForType2();
+
+struct ReflectedValue_t {
+    ITypeReflection* refl;
+    void* p_value;
+
+    ReflectedValue_t()
+    {
+        refl = nullptr;
+        p_value = nullptr;
+    }
+
+    template <typename T>
+    ReflectedValue_t(T& value)
+    {
+        refl = reflectionForType2<T>();
+        p_value = &value;
+    }
+};
 }

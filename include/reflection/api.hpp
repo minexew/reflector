@@ -171,12 +171,20 @@ void reflectPrint(T& instance, uint32_t fieldMask = FIELD_STATE | FIELD_CONFIG) 
     printf("\n");
 }
 
+// ====================================================================== //
+//  reflectSerialize
+// ====================================================================== //
+
 template <typename T>
 bool reflectSerialize(const T& inst, serialization::IWriter* writer) {
     ITypeReflection* refl = reflectionForType2<T>();
 
     return refl->serialize(err, writer, reinterpret_cast<const void*>(&inst));
 }
+
+// ====================================================================== //
+//  reflectDeserialize
+// ====================================================================== //
 
 template <typename T>
 bool reflectDeserialize(T& value_out, serialization::IReader* reader) {
@@ -185,7 +193,21 @@ bool reflectDeserialize(T& value_out, serialization::IReader* reader) {
     return refl->deserialize(err, reader, reinterpret_cast<void*>(&value_out));
 }
 
+// ====================================================================== //
+//  reflectToString
+// ====================================================================== //
+
 #ifndef REFLECTOR_AVOID_STL
+inline std::string reflectToString(const ReflectedValue_t& val, uint32_t fieldMask = FIELD_STATE) {
+    char* buf = nullptr;
+    size_t bufSize = 0;
+
+    if (!val.refl->toString(err, buf, bufSize, fieldMask, val.p_value))
+        return "";
+
+    return buf;
+}
+
 template <typename T>
 std::string reflectToString(const T inst[], uint32_t fieldMask = FIELD_STATE) {
     static_assert(T() && false, "reflectToString currently doesn't work with arrays");
@@ -197,7 +219,6 @@ std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
 
     char* buf = nullptr;
     size_t bufSize = 0;
-    AllocGuard guard(buf);
 
     if (!refl->toString(err, buf, bufSize, fieldMask, reinterpret_cast<const void*>(&inst)))
         return "";
@@ -206,7 +227,15 @@ std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
 }
 #endif
 
+// ====================================================================== //
+//  reflectFromString
+// ====================================================================== //
+
 #ifndef REFLECTOR_AVOID_STL
+inline bool reflectFromString(ReflectedValue_t& val, const std::string& str) {
+    return val.refl->setFromString(err, str.c_str(), str.length(), val.p_value);
+}
+
 template <typename T>
 bool reflectFromString(T& inst, const std::string& str) {
     ITypeReflection* refl = reflectionForType(inst);
