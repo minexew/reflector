@@ -201,10 +201,10 @@ public:
                 if (byte & 0x40) {
                     // negative
                     // FIXME: check overflow
-                    value_out = -magnitude;
+                    value_out = - (T) magnitude;
                 }
                 else
-                    value_out = magnitude;
+                    value_out = (T) magnitude;
 
                 return true;
             }
@@ -242,8 +242,8 @@ public:
     enum { TAG = TAG_UTF8 };
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const char* value) {
-        uint64_t length = strlen(value);
-        return SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+        size_t length = strlen(value);
+        return SmvIntSerializer<size_t>::serializeValue(err, writer, length)
                 && writer->write(err, value, length);
     }
 
@@ -252,9 +252,9 @@ public:
     }
 
     static bool deserialize(IErrorHandler* err, IReader* reader, BufString_t& value_out) {
-        uint64_t length;
+        size_t length;
 
-        if (!SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
+        if (!SmvIntSerializer<size_t>::deserializeValue(err, reader, length))
             return false;
 
         ensureSize(err, value_out.buf, value_out.bufSize, length + 1);
@@ -281,8 +281,8 @@ public:
     enum { TAG = TAG_UTF8 };
 
     static bool serialize(IErrorHandler* err, IWriter* writer, const std::string& value) {
-        uint64_t length = value.length();
-        return SmvIntSerializer<uint64_t>::serializeValue(err, writer, length)
+        size_t length = value.length();
+        return SmvIntSerializer<size_t>::serializeValue(err, writer, length)
                 && writer->write(err, value.c_str(), length);
     }
 

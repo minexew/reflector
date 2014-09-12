@@ -88,14 +88,14 @@ public:
         int hrc = preSerializationHook(err, writer, value, REFL_MATCH);
 
         if (hrc >= 0)
-            return (bool) hrc;
+            return hrc ? 1 : 0;
 
         int rc = Serializer<T>::serialize(err, writer, value);
 
         hrc = postSerializationHook(err, writer, value, rc, REFL_MATCH);
 
         if (hrc >= 0)
-            return (bool) hrc;
+            return hrc ? 1 : 0;
 
         return rc != 0;
     }
@@ -104,14 +104,14 @@ public:
         int hrc = preDeserializationHook(err, reader, value_out, REFL_MATCH);
 
         if (hrc >= 0)
-            return (bool) hrc;
+            return hrc ? 1 : 0;
 
         int rc = Serializer<T>::deserialize(err, reader, value_out);
 
         hrc = postDeserializationHook(err, reader, value_out, rc, REFL_MATCH);
 
         if (hrc >= 0)
-            return (bool) hrc;
+            return hrc ? 1 : 0;
 
         return rc != 0;
     }
