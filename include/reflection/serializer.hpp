@@ -118,6 +118,20 @@ public:
     }
 };
 
+template <typename T, Tag_t tag>
+class FloatSerializer {
+public:
+    enum { TAG = tag };
+
+    static bool serialize(IErrorHandler* err, IWriter* writer, const T& value) {
+        return writer->write(err, &value, 1);
+    }
+
+    static bool deserialize(IErrorHandler* err, IReader* reader, T& value_out) {
+        return reader->read(err, &value_out, 1);
+    }
+};
+
 template <typename T>
 class SmvIntSerializer {
 public:
@@ -218,6 +232,9 @@ template <> class Serializer<unsigned short> :      public SmvIntSerializer<unsi
 template <> class Serializer<unsigned int> :        public SmvIntSerializer<unsigned int> {};
 template <> class Serializer<unsigned long> :       public SmvIntSerializer<unsigned long> {};
 template <> class Serializer<unsigned long long> :  public SmvIntSerializer<unsigned long long> {};
+
+template <> class Serializer<float> :               public FloatSerializer<float, TAG_REAL32> {};
+template <> class Serializer<double> :              public FloatSerializer<double, TAG_REAL64> {};
 
 template <>
 class Serializer<BufString_t> {

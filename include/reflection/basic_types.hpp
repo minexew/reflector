@@ -95,6 +95,9 @@ template <> ITypeReflection* reflectionForType2<type_ const>() {\
 #define DEFINE_INTEGRAL_REFLECTION(type_, oneTokenType_) DEFINE_REFLECTION(IntegralReflector_##oneTokenType_, type_,\
     IntegralReflectionTemplate<type_>)
 
+#define DEFINE_FLOAT_REFLECTION(type_, oneTokenType_) DEFINE_REFLECTION(FloatReflector_##oneTokenType_, type_,\
+    FloatReflectionTemplate<type_>)
+
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
 template <typename Bool_t>
@@ -188,6 +191,25 @@ public:
     }
 };
 
+template <typename Float_t>
+class FloatReflectionTemplate {
+public:
+    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, Float_t& value_out) {
+        char* end;
+        double asDouble = strtod(str, &end);
+
+        if (*end != 0)
+            return err->error("FloatFormatError", "Specified value is not a valid decimal value."), false;
+
+        value_out = (Float_t) asDouble;
+        return true;
+    }
+
+    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const Float_t& value) {
+        return bufStringPrintf(err, buf, bufSize, "%g", (double) value);
+    }
+};
+
 #ifndef REFLECTOR_AVOID_STL
 class StdStringReflectionTemplate {
 public:
@@ -217,6 +239,9 @@ DEFINE_INTEGRAL_REFLECTION(unsigned short,      ushort)
 DEFINE_INTEGRAL_REFLECTION(unsigned int,        uint)
 DEFINE_INTEGRAL_REFLECTION(unsigned long,       ulong)
 DEFINE_INTEGRAL_REFLECTION(unsigned long long,  ullong)
+
+DEFINE_FLOAT_REFLECTION(float,                  float)
+DEFINE_FLOAT_REFLECTION(double,                 double)
 
 #ifndef REFLECTOR_AVOID_STL
 DEFINE_REFLECTION(StdStringReflection, std::string, StdStringReflectionTemplate)
