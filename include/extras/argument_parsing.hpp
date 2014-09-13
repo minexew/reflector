@@ -87,6 +87,44 @@ bool setDashArgument(Fields& fields, int argc, char* argv[], int& i, const char*
 }
 
 template <class Fields>
+bool setDashDashArgument(Fields& fields, int argc, char* argv[], int& i, const char* programName, char argSpecified[]) {
+    for (size_t j = 0; j < fields.count(); j++) {
+        auto field = fields[j];
+
+        const char* spec = field.params;
+
+        if (strcmp(spec, argv[i]) == 0) {
+            if (field.template isType<bool>()) {
+                // --option
+                if (!field.setFromString("1"))
+                    return false;
+
+                argSpecified[j] = 1;
+                return true;
+            }
+            else {
+                // --option Value
+                ++i;
+
+                if (i >= argc) {
+                    fprintf(stderr, "%s: error: expected '%s <%s>'\n", programName, spec, field.name);
+                    return false;
+                }
+
+                if (!field.setFromString(argv[i]))
+                    return false;
+
+                argSpecified[j] = 1;
+                return true;
+            }
+        }
+    }
+
+    fprintf(stderr, "%s: error: unrecognized argument '%s'\n", programName, argv[i]);
+    return false;
+}
+
+template <class Fields>
 bool setPlainArgument(Fields& fields, int argc, char* argv[], int& i, const char* programName, char argSpecified[]) {
     for (size_t j = 0; j < fields.count(); j++) {
         if (argSpecified[j])
@@ -129,7 +167,10 @@ int execute(const Command_t& cmd, int argc, char* argv[], const char* programNam
                     return -1;
             }
             else {
-                // double-dash argument (NOT IMPLEMENTED)
+                // double-dash argument
+
+                if (!setDashDashArgument(fields, argc, argv, i, programName, argSpecified))
+                    return -1;
             }
         }
         else {
