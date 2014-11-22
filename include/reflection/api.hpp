@@ -211,6 +211,8 @@ inline std::string reflectToString(const ReflectedValue_t& val, uint32_t fieldMa
 template <typename T>
 std::string reflectToString(const T inst[], uint32_t fieldMask = FIELD_STATE) {
     static_assert(T() && false, "reflectToString currently doesn't work with arrays");
+
+    return std::string();
 }
 
 template <typename T>
