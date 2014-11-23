@@ -180,6 +180,16 @@ struct ReflectedValue_t {
         p_value = nullptr;
     }
 
+    ReflectedValue_t(const ReflectedValue_t& other)
+            : refl(other.refl), p_value(other.p_value)
+    {
+    }
+
+    ReflectedValue_t(ReflectedValue_t& other)
+            : refl(other.refl), p_value(other.p_value)
+    {
+    }
+
     template <typename T>
     ReflectedValue_t(T& value)
     {
