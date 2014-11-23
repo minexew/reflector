@@ -146,7 +146,7 @@ public:
         }
         else {
             // FIXME: check overflow
-            magnitude = -value;
+            magnitude = 1 + ~value;
             sign = 1;
         }
 
@@ -201,7 +201,7 @@ public:
                 if (byte & 0x40) {
                     // negative
                     // FIXME: check overflow
-                    value_out = - (T) magnitude;
+                    value_out = 1 + (T) ~magnitude;
                 }
                 else
                     value_out = (T) magnitude;

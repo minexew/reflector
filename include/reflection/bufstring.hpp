@@ -39,6 +39,9 @@ public:
     AllocGuard(T*& ptr) : ptr((void*&) ptr) {
     }
 
+    AllocGuard(const AllocGuard& other) = delete;
+    AllocGuard& operator =(const AllocGuard& other) = delete;
+
     ~AllocGuard() {
         free(ptr);
         ptr = nullptr;
