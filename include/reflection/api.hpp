@@ -205,7 +205,9 @@ inline std::string reflectToString(const ReflectedValue_t& val, uint32_t fieldMa
     if (!val.refl->toString(err, buf, bufSize, fieldMask, val.p_value))
         return "";
 
-    return buf;
+    std::string str(buf);
+    free(buf);
+    return std::move(str);
 }
 
 template <typename T>
