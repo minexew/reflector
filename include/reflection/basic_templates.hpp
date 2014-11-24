@@ -31,40 +31,42 @@
 namespace reflection {  // UUID('c3549467-1615-4087-9829-176a2dc44b76')
 
 #ifndef REFLECTOR_AVOID_STL
-class StdStringReflectionTemplate {
+template <typename T>
+class StdVectorReflectionTemplate {
 public:
-    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, std::string& value_out) {
-        value_out = str;
-        return true;
+    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, std::vector<T>& value_out) {
+        return err->notImplemented("reflection::StdVectorReflectionTemplate::fromString"), false;
     }
 
-    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const std::string& value) {
-        return bufStringSet(err, buf, bufSize, value.c_str(), value.length());
+    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const std::vector<T>& value) {
+        if (!bufStringSet(err, buf, bufSize, "[", 1))
+            return false;
+
+        ITypeReflection* refl = reflectionForType2<T>();
+        char* ourBuf = nullptr;
+        size_t ourBufSize = 0;
+
+        for (size_t i = 0; i < value.size(); i++)
+        {
+            if (i > 0 && !bufStringAppend(err, buf, bufSize, ", ", 2))
+                return false;
+
+            if (!refl->toString(err, ourBuf, ourBufSize, FIELD_STATE,
+                    reinterpret_cast<const void*>(&value[i]))
+                    || !bufStringAppend(err, buf, bufSize, ourBuf, ourBufSize))
+            {
+                free(ourBuf);
+                return false;
+            }
+        }
+
+        return bufStringAppend(err, buf, bufSize, "]", 1);
     }
 };
 #endif
 
-DEFINE_REFLECTION(BoolReflection, bool, BoolReflectionTemplate<bool>)
-
-// TODO: rethink these
-DEFINE_INTEGRAL_REFLECTION(char,                char)
-DEFINE_INTEGRAL_REFLECTION(unsigned char,       byte)
-
-DEFINE_INTEGRAL_REFLECTION(short,               short)
-DEFINE_INTEGRAL_REFLECTION(int,                 int)
-DEFINE_INTEGRAL_REFLECTION(long,                long)
-DEFINE_INTEGRAL_REFLECTION(long long,           llong)
-
-DEFINE_INTEGRAL_REFLECTION(unsigned short,      ushort)
-DEFINE_INTEGRAL_REFLECTION(unsigned int,        uint)
-DEFINE_INTEGRAL_REFLECTION(unsigned long,       ulong)
-DEFINE_INTEGRAL_REFLECTION(unsigned long long,  ullong)
-
-DEFINE_FLOAT_REFLECTION(float,                  float)
-DEFINE_FLOAT_REFLECTION(double,                 double)
-
 #ifndef REFLECTOR_AVOID_STL
-DEFINE_REFLECTION(StdStringReflection, std::string, StdStringReflectionTemplate)
+DEFINE_REFLECTION_TEMPLATED(StdVectorReflection, std::vector, <T>, StdVectorReflectionTemplate, typename T)
 #endif
 
 }

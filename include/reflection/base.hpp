@@ -165,10 +165,13 @@ struct FieldSet_t {
 };
 
 template <class C>
+struct ReflectionForType2;
+
+template <class C>
 ITypeReflection* reflectionForType(C);
 
 template <class C>
-ITypeReflection* reflectionForType2();
+ITypeReflection* reflectionForType2() { return ReflectionForType2<C>::reflectionForType2(); }
 
 struct ReflectedValue_t {
     ITypeReflection* refl;

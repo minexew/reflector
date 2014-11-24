@@ -148,8 +148,12 @@ ITypeReflection* reflectionForType(C) {
 }
 
 template <class C>
-ITypeReflection* reflectionForType2() {
-    static ClassReflection<C> reflection;
-    return &reflection;
-}
+class ReflectionForType2
+{
+public:
+    static ITypeReflection* reflectionForType2() {
+        static ClassReflection<C> reflection;
+        return &reflection;
+    }
+};
 }
