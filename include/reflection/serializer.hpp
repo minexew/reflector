@@ -32,6 +32,7 @@
 
 #ifndef REFLECTOR_AVOID_STL
 #include <string>
+#include <vector>
 #endif
 
 namespace serialization {
@@ -302,6 +303,43 @@ public:
                 return false;
 
             value_out.append(1, next);
+        }
+
+        return true;
+    }
+};
+
+template <typename T>
+class Serializer<std::vector<T>> {
+public:
+    enum { TAG = TAG_TYPED_ARRAY }; // FIXME
+
+    static bool serialize(IErrorHandler* err, IWriter* writer, const std::vector<T>& value) {
+        size_t length = value.size();
+        if (!SmvIntSerializer<size_t>::serializeValue(err, writer, length))
+            return false;
+
+        for (size_t i = 0; i < length; i++)
+            if (!Serializer<T>::serialize(err, writer, value[i]))
+                return false;
+
+        return true;
+    }
+
+    static bool deserialize(IErrorHandler* err, IReader* reader, std::vector<T>& value_out) {
+        uint64_t length;
+
+        if (!SmvIntSerializer<uint64_t>::deserializeValue(err, reader, length))
+            return false;
+
+        value_out.clear();
+
+        for (size_t i = 0; i < length; i++)
+        {
+            value_out.emplace_back();
+
+            if (!Serializer<T>::deserialize(err, reader, value_out[i]))
+                return false;
         }
 
         return true;

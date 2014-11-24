@@ -36,7 +36,8 @@
 #include <string>
 #endif
 
-#define DECLARE_REFLECTION(name_, type_, template_) class name_: public ITypeReflection {\
+#define DECLARE_REFLECTION(name_, type_, template_, thisTemplate)\
+thisTemplate class name_: public ITypeReflection {\
 public:\
     name_() {}\
 \
@@ -74,23 +75,35 @@ public:\
     }\
 };\
 
-#define PUBLISH_REFLECTION(reflection_, type_) \
-template <> ITypeReflection* reflectionForType<type_>(type_) {\
+#define PUBLISH_REFLECTION(reflection_, type_, template_) \
+template <template_> ITypeReflection* reflectionForType(type_) {\
     static reflection_ reflection;\
     return &reflection;\
 }\
-template <> ITypeReflection* reflectionForType2<type_>() {\
-    static reflection_ reflection;\
-    return &reflection;\
-}\
-template <> ITypeReflection* reflectionForType2<type_ const>() {\
-    static reflection_ reflection;\
-    return &reflection;\
-}\
+template <template_>\
+struct ReflectionForType2<type_> {\
+    static ITypeReflection* reflectionForType2() {\
+        static reflection_ reflection;\
+        return &reflection;\
+    }\
+};\
+template <template_>\
+struct ReflectionForType2<type_ const> {\
+    static ITypeReflection* reflectionForType2() {\
+        static reflection_ reflection;\
+        return &reflection;\
+    }\
+};
+
+#define NOTHING
 
 #define DEFINE_REFLECTION(name_, type_, template_) \
-    DECLARE_REFLECTION(name_, type_, template_)\
-    PUBLISH_REFLECTION(name_, type_)
+    DECLARE_REFLECTION(name_, type_, template_, NOTHING)\
+    PUBLISH_REFLECTION(name_, type_, NOTHING)
+
+#define DEFINE_REFLECTION_TEMPLATED(name_, type_, templateParameters_, template_, thisTemplate_) \
+    DECLARE_REFLECTION(name_, type_ templateParameters_, template_ templateParameters_, template<thisTemplate_>)\
+    PUBLISH_REFLECTION(name_ templateParameters_, type_ templateParameters_, thisTemplate_)
 
 #define DEFINE_INTEGRAL_REFLECTION(type_, oneTokenType_) DEFINE_REFLECTION(IntegralReflector_##oneTokenType_, type_,\
     IntegralReflectionTemplate<type_>)
@@ -209,18 +222,4 @@ public:
         return bufStringPrintf(err, buf, bufSize, "%g", (double) value);
     }
 };
-
-#ifndef REFLECTOR_AVOID_STL
-class StdStringReflectionTemplate {
-public:
-    static bool fromString(IErrorHandler* err, const char* str, size_t strLen, std::string& value_out) {
-        value_out = str;
-        return true;
-    }
-
-    static bool toString(IErrorHandler* err, char*& buf, size_t& bufSize, const std::string& value) {
-        return bufStringSet(err, buf, bufSize, value.c_str(), value.length());
-    }
-};
-#endif
 }

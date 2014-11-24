@@ -227,7 +227,9 @@ std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
     if (!refl->toString(err, buf, bufSize, fieldMask, reinterpret_cast<const void*>(&inst)))
         return "";
 
-    return buf;
+    std::string str(buf);
+    free(buf);
+    return std::move(str);
 }
 #endif
 
