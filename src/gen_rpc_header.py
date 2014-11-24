@@ -26,10 +26,45 @@
 
 MAX_ARGS = 10
 
+def generate_rpcCall(num_args, void):
+    template_args = ', '.join(['class Handler', 'const char* functionName']
+        + (['typename Return'] if not void else [])
+        + list('typename Arg%d' % i for i in range(0, num_args)))
+
+    print('template <' + template_args + '>')
+
+    if not void:
+        print('Return rpcCall(')
+    else:
+        print('void rpcCallVoid(')
+
+    print('        ' + ', '.join(['Handler& handler']
+            + list('Arg%d const& arg%d' % (i, i) for i in range(0, num_args))) + ') {')
+    print()
+    print('    assert(handler.begin(functionName));')
+    print()
+
+    for i in range(0, num_args):
+        print('    assert(handler.argument(arg%d));' % i)
+        if i + 1 == num_args: print()
+
+    print('    assert(handler.invoke());')
+    print()
+
+    if not void:
+        print('    Return result;')
+        print('    assert(handler.end(result));')
+        print('    return result;')
+    else:
+        print('    assert(handler.end());')
+
+    print('}')
+    print()
+
 def generate_rpcSerializedCall(num_args, void):
-    template_args = ', '.join(['const char* functionName', 'typename Return'] +
-        list('typename Arg%d' % i for i in range(0, num_args)) +
-        [])
+    template_args = ', '.join(['const char* functionName']
+        + (['typename Return'] if not void else [])
+        + list('typename Arg%d' % i for i in range(0, num_args)))
 
     print('template <' + template_args + '>')
 
@@ -61,6 +96,51 @@ def generate_rpcSerializedCall(num_args, void):
     else:
         print('    endRPC();')
 
+    print('}')
+    print()
+
+def generate_rpcExecute(num_args, void):
+    if not void:
+        template_args = ['class Handler', 'typename Return']
+        template_arg_list = ['Handler', 'Return']
+        returnType = 'Return'
+    else:
+        template_args = ['class Handler']
+        template_arg_list = ['Handler']
+        returnType = 'void'
+
+    arg_types = ', '.join('Arg%d' % i for i in range(0, num_args))
+    func_variable = returnType + ' (*function)(' + arg_types + ')'
+
+    template_args = ', '.join(template_args +
+        list('typename Arg%d' % i for i in range(0, num_args)) +
+        [func_variable])
+
+    print('template <' + template_args + '>')
+
+    print('bool rpcExecute(Handler& handler) {')
+    for i in range(0, num_args):
+        print('    typename std::remove_cv<typename std::remove_reference<Arg%d>::type>::type arg%d;' % (i, i))
+        if i + 1 == num_args: print()
+
+    print('    assert(handler.begin());')
+    print()
+
+    for i in range(0, num_args):
+        print('    if (!handler.getArgument(arg%d)) return false;' % i)
+        if i + 1 == num_args: print()
+
+    if not void:
+        print('    const Return result = function(' + ', '.join('arg%d' % i for i in range(0, num_args)) + ');')
+        print()
+        print('    if (!handler.end(result)) return false;')
+    else:
+        print('    function(' + ', '.join('arg%d' % i for i in range(0, num_args)) + ');')
+        print()
+        print('    if (!handler.end()) return false;')
+
+    print()
+    print('    return true;')
     print('}')
     print()
 
@@ -103,6 +183,59 @@ def generate_rpcSerializedExecute(num_args, void):
     print('    return true;')
     print('}')
     print()
+
+def generate_getRpcCall(num_args, void):
+    if not void:
+        template_args = ['class Handler', 'const char* functionName', 'typename Return']
+        template_arg_list = ['Handler', 'functionName', 'Return']
+        returnType = 'Return'
+        makeFunctionPointer = "MakeFunctionPointer2_"
+    else:
+        template_args = ['class Handler', 'const char* functionName']
+        template_arg_list = ['Handler', 'functionName']
+        returnType = 'void'
+        makeFunctionPointer = "MakeFunctionPointerVoid2_"
+
+    template_args = ', '.join(template_args +
+        list('typename Arg%d' % i for i in range(0, num_args)) +
+        [])
+
+    template_arg_list = ', '.join(template_arg_list +
+        list('Arg%d' % i for i in range(0, num_args)) +
+        [])
+
+    arg_types = ', '.join('Arg%d' % i for i in range(0, num_args))
+    func_type = returnType + ' (*)(' + arg_types + ')'
+    func_variable = returnType + ' (*functionNull)(' + arg_types + ')'
+
+    mfp_template_args = ['class Handler'] + (['typename Return'] if not void else []) + list('typename Arg%d' % i for i in range(0, num_args))
+    if mfp_template_args: print('template <' + ', '.join(mfp_template_args) + '>')
+    print('struct ' + makeFunctionPointer + '%d {' % num_args)
+    print('    typedef ' + returnType + ' (*type)(' + ', '.join(['Handler&'] + ['Arg%d const&' % i for i in range(0, num_args)]) + ');')
+    print('};')
+    print()
+
+    print('template <' + template_args + '>')
+
+    if not void:
+        print(('RPC_CONSTEXPR_FUNC typename ' + makeFunctionPointer + '%d<' % num_args) +
+            ', '.join(['Handler', 'Return'] + list('Arg%d' % i for i in range(0, num_args))) +
+            '>::type getRpcCall(' + func_variable + ') {')
+        print('    return &rpcCall<' + template_arg_list + '>;')
+        print('}')
+        print()
+    else:
+        mfp_template_args = ['Handler'] + list('Arg%d' % i for i in range(0, num_args))
+        if mfp_template_args:
+            print(('RPC_CONSTEXPR_FUNC typename ' + makeFunctionPointer + '%d<' % num_args) +
+                ', '.join(mfp_template_args) +
+                '>::type getRpcCall(' + func_variable + ') {')
+        else:
+            print(('RPC_CONSTEXPR_FUNC typename ' + makeFunctionPointer + '%d' % num_args) +
+                '::type getRpcCall(' + func_variable + ') {')
+        print('    return &rpcCallVoid<' + template_arg_list + '>;')
+        print('}')
+        print()
 
 def generate_getRpcSerializedCall(num_args, void):
     if not void:
@@ -157,6 +290,36 @@ def generate_getRpcSerializedCall(num_args, void):
         print('}')
         print()
 
+def generate_getRpcExecute(num_args, void):
+    if not void:
+        template_args = ['typename Function', 'Function func', 'class Handler', 'typename Return']
+        template_arg_list = ['Handler', 'Return']
+        returnType = 'Return'
+    else:
+        template_args = ['typename Function', 'Function func', 'class Handler']
+        template_arg_list = ['Handler']
+        returnType = 'void'
+
+    template_args = ', '.join(template_args +
+        list('typename Arg%d' % i for i in range(0, num_args)) +
+        [])
+
+    template_arg_list = ', '.join(template_arg_list +
+        list('Arg%d' % i for i in range(0, num_args)) +
+        ['func'])
+
+    arg_types = ', '.join('Arg%d' % i for i in range(0, num_args))
+    func_type = returnType + ' (*)(' + arg_types + ')'
+    func_variable = returnType + ' (*functionNull)(' + arg_types + ')'
+
+    print('template <' + template_args + '>')
+
+    print('RPC_CONSTEXPR_FUNC bool (*getRpcExecute(' + func_variable + '))(')
+    print('        Handler& handler) {')
+    print('    return &rpcExecute<' + template_arg_list + '>;')
+    print('}')
+    print()
+
 def generate_getRpcSerializedExecute(num_args, void):
     if not void:
         template_args = ['typename Function', 'Function func', 'typename Return']
@@ -199,9 +362,13 @@ print()
 
 for num_args in range(0, MAX_ARGS + 1):
     for void in [False, True]:
+        generate_rpcCall(num_args, void)
         generate_rpcSerializedCall(num_args, void)
+        generate_rpcExecute(num_args, void)
         generate_rpcSerializedExecute(num_args, void)
+        generate_getRpcCall(num_args, void)
         generate_getRpcSerializedCall(num_args, void)
+        generate_getRpcExecute(num_args, void)
         generate_getRpcSerializedExecute(num_args, void)
 
 print('}')

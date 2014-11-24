@@ -36,6 +36,17 @@
 #define RPC_CONSTEXPR_FUNC inline
 #endif
 
+#define RPC_FUNCTION(handlerClass_, localName_, functionName_)\
+namespace { char localName_##_rpcFunctionName_[] = #functionName_; }\
+RPC_CONSTEXPR auto localName_ = ::rpc::getRpcCall<handlerClass_,\
+        localName_##_rpcFunctionName_>(decltype(&functionName_)(nullptr));\
+
+#define GET_RPC_EXECUTE(handlerClass_, functionName_)\
+    ::rpc::getRpcExecute<decltype(&functionName_), &functionName_, handlerClass_>(&functionName_)
+
+#define DEFINE_RPC(handlerClass_, wrapperName_, functionName_)\
+RPC_CONSTEXPR auto wrapperName_ = GET_RPC_EXECUTE(handlerClass_, functionName_);\
+
 #define RPC_SERIALIZED(localName_, functionName_)\
 namespace { char localName_##_rpcFunctionName_[] = #functionName_; }\
 RPC_CONSTEXPR auto localName_ = ::rpc::getRpcSerializedCall<\

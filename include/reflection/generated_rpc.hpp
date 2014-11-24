@@ -6,6 +6,19 @@
 
 namespace rpc {
 
+template <class Handler, const char* functionName, typename Return>
+Return rpcCall(
+        Handler& handler) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
+}
+
 template <const char* functionName, typename Return>
 Return rpcSerializedCall(
         ) {
@@ -23,6 +36,17 @@ Return rpcSerializedCall(
     return result;
 }
 
+template <class Handler, typename Return, Return (*function)()>
+bool rpcExecute(Handler& handler) {
+    assert(handler.begin());
+
+    const Return result = function();
+
+    if (!handler.end(result)) return false;
+
+    return true;
+}
+
 template <typename Return, Return (*function)()>
 bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) {
     const Return result = function();
@@ -30,6 +54,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     if (!reflectSerialize(result, writer)) return false;
 
     return true;
+}
+
+template <class Handler, typename Return>
+struct MakeFunctionPointer2_0 {
+    typedef Return (*type)(Handler&);
+};
+
+template <class Handler, const char* functionName, typename Return>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_0<Handler, Return>::type getRpcCall(Return (*functionNull)()) {
+    return &rpcCall<Handler, functionName, Return>;
 }
 
 template <typename Return>
@@ -42,13 +76,30 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer0<Return>::type getRpcSerializedC
     return &rpcSerializedCall<functionName, Return>;
 }
 
+template <typename Function, Function func, class Handler, typename Return>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)()))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, func>;
+}
+
 template <typename Function, Function func, typename Return>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)()))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, func>;
 }
 
-template <const char* functionName, typename Return>
+template <class Handler, const char* functionName>
+void rpcCallVoid(
+        Handler& handler) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName>
 void rpcSerializedCallVoid(
         ) {
     IWriter* writer;
@@ -61,11 +112,32 @@ void rpcSerializedCallVoid(
     endRPC();
 }
 
+template <class Handler, void (*function)()>
+bool rpcExecute(Handler& handler) {
+    assert(handler.begin());
+
+    function();
+
+    if (!handler.end()) return false;
+
+    return true;
+}
+
 template <void (*function)()>
 bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) {
     function();
 
     return true;
+}
+
+template <class Handler>
+struct MakeFunctionPointerVoid2_0 {
+    typedef void (*type)(Handler&);
+};
+
+template <class Handler, const char* functionName>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_0<Handler>::type getRpcCall(void (*functionNull)()) {
+    return &rpcCallVoid<Handler, functionName>;
 }
 
 struct MakeFunctionPointerVoid0 {
@@ -77,10 +149,31 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid0::type getRpcSerializedCall(
     return &rpcSerializedCallVoid<functionName>;
 }
 
+template <typename Function, Function func, class Handler>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)()))(
+        Handler& handler) {
+    return &rpcExecute<Handler, func>;
+}
+
 template <typename Function, Function func>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)()))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0>
@@ -100,6 +193,21 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, Return (*function)(Arg0)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+
+    const Return result = function(arg0);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, Return (*function)(Arg0)>
@@ -115,6 +223,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0>
+struct MakeFunctionPointer2_1 {
+    typedef Return (*type)(Handler&, Arg0 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_1<Handler, Return, Arg0>::type getRpcCall(Return (*functionNull)(Arg0)) {
+    return &rpcCall<Handler, functionName, Return, Arg0>;
+}
+
 template <typename Return, typename Arg0>
 struct MakeFunctionPointer1 {
     typedef Return (*type)(Arg0 const&);
@@ -125,13 +243,32 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer1<Return, Arg0>::type getRpcSeria
     return &rpcSerializedCall<functionName, Return, Arg0>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0>
+template <class Handler, const char* functionName, typename Arg0>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0>
 void rpcSerializedCallVoid(
         Arg0 const& arg0) {
     IWriter* writer;
@@ -146,6 +283,21 @@ void rpcSerializedCallVoid(
     endRPC();
 }
 
+template <class Handler, typename Arg0, void (*function)(Arg0)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+
+    function(arg0);
+
+    if (!handler.end()) return false;
+
+    return true;
+}
+
 template <typename Arg0, void (*function)(Arg0)>
 bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) {
     typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
@@ -155,6 +307,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     function(arg0);
 
     return true;
+}
+
+template <class Handler, typename Arg0>
+struct MakeFunctionPointerVoid2_1 {
+    typedef void (*type)(Handler&, Arg0 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_1<Handler, Arg0>::type getRpcCall(void (*functionNull)(Arg0)) {
+    return &rpcCallVoid<Handler, functionName, Arg0>;
 }
 
 template <typename Arg0>
@@ -167,10 +329,32 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid1<Arg0>::type getRpcSerialize
     return &rpcSerializedCallVoid<functionName, Arg0>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, func>;
+}
+
 template <typename Function, Function func, typename Arg0>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1>
@@ -191,6 +375,23 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, Return (*function)(Arg0, Arg1)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+
+    const Return result = function(arg0, arg1);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, Return (*function)(Arg0, Arg1)>
@@ -208,6 +409,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1>
+struct MakeFunctionPointer2_2 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_2<Handler, Return, Arg0, Arg1>::type getRpcCall(Return (*functionNull)(Arg0, Arg1)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1>;
+}
+
 template <typename Return, typename Arg0, typename Arg1>
 struct MakeFunctionPointer2 {
     typedef Return (*type)(Arg0 const&, Arg1 const&);
@@ -218,13 +429,33 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2<Return, Arg0, Arg1>::type getRp
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1) {
     IWriter* writer;
@@ -240,6 +471,23 @@ void rpcSerializedCallVoid(
     endRPC();
 }
 
+template <class Handler, typename Arg0, typename Arg1, void (*function)(Arg0, Arg1)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+
+    function(arg0, arg1);
+
+    if (!handler.end()) return false;
+
+    return true;
+}
+
 template <typename Arg0, typename Arg1, void (*function)(Arg0, Arg1)>
 bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) {
     typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
@@ -253,6 +501,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1>
+struct MakeFunctionPointerVoid2_2 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_2<Handler, Arg0, Arg1>::type getRpcCall(void (*functionNull)(Arg0, Arg1)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1>;
+}
+
 template <typename Arg0, typename Arg1>
 struct MakeFunctionPointerVoid2 {
     typedef void (*type)(Arg0 const&, Arg1 const&);
@@ -263,10 +521,33 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2<Arg0, Arg1>::type getRpcSer
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
@@ -288,6 +569,25 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, Return (*function)(Arg0, Arg1, Arg2)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+
+    const Return result = function(arg0, arg1, arg2);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, Return (*function)(Arg0, Arg1, Arg2)>
@@ -307,6 +607,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2>
+struct MakeFunctionPointer2_3 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_3<Handler, Return, Arg0, Arg1, Arg2>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2>
 struct MakeFunctionPointer3 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&);
@@ -317,13 +627,34 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer3<Return, Arg0, Arg1, Arg2>::type
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2) {
     IWriter* writer;
@@ -338,6 +669,25 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, void (*function)(Arg0, Arg1, Arg2)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+
+    function(arg0, arg1, arg2);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, void (*function)(Arg0, Arg1, Arg2)>
@@ -355,6 +705,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2>
+struct MakeFunctionPointerVoid2_3 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_3<Handler, Arg0, Arg1, Arg2>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2>
 struct MakeFunctionPointerVoid3 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&);
@@ -365,10 +725,34 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid3<Arg0, Arg1, Arg2>::type get
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
@@ -391,6 +775,27 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, Return (*function)(Arg0, Arg1, Arg2, Arg3)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, Return (*function)(Arg0, Arg1, Arg2, Arg3)>
@@ -412,6 +817,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+struct MakeFunctionPointer2_4 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_4<Handler, Return, Arg0, Arg1, Arg2, Arg3>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 struct MakeFunctionPointer4 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&);
@@ -422,13 +837,35 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer4<Return, Arg0, Arg1, Arg2, Arg3>
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3) {
     IWriter* writer;
@@ -444,6 +881,27 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, void (*function)(Arg0, Arg1, Arg2, Arg3)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+
+    function(arg0, arg1, arg2, arg3);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, void (*function)(Arg0, Arg1, Arg2, Arg3)>
@@ -463,6 +921,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+struct MakeFunctionPointerVoid2_4 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_4<Handler, Arg0, Arg1, Arg2, Arg3>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 struct MakeFunctionPointerVoid4 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&);
@@ -473,10 +941,35 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid4<Arg0, Arg1, Arg2, Arg3>::ty
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
@@ -500,6 +993,29 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4)>
@@ -523,6 +1039,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+struct MakeFunctionPointer2_5 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_5<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 struct MakeFunctionPointer5 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&);
@@ -533,13 +1059,36 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer5<Return, Arg0, Arg1, Arg2, Arg3,
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4) {
     IWriter* writer;
@@ -556,6 +1105,29 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4)>
@@ -577,6 +1149,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+struct MakeFunctionPointerVoid2_5 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_5<Handler, Arg0, Arg1, Arg2, Arg3, Arg4>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 struct MakeFunctionPointerVoid5 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&);
@@ -587,10 +1169,36 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid5<Arg0, Arg1, Arg2, Arg3, Arg
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, Arg4, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
@@ -615,6 +1223,31 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4, arg5);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)>
@@ -640,6 +1273,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+struct MakeFunctionPointer2_6 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_6<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 struct MakeFunctionPointer6 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&);
@@ -650,13 +1293,37 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer6<Return, Arg0, Arg1, Arg2, Arg3,
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5) {
     IWriter* writer;
@@ -674,6 +1341,31 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4, arg5);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)>
@@ -697,6 +1389,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+struct MakeFunctionPointerVoid2_6 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_6<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 struct MakeFunctionPointerVoid6 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&);
@@ -707,10 +1409,37 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid6<Arg0, Arg1, Arg2, Arg3, Arg
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
@@ -736,6 +1465,33 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
@@ -763,6 +1519,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+struct MakeFunctionPointer2_7 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_7<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 struct MakeFunctionPointer7 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&);
@@ -773,13 +1539,38 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer7<Return, Arg0, Arg1, Arg2, Arg3,
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6) {
     IWriter* writer;
@@ -798,6 +1589,33 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
@@ -823,6 +1641,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+struct MakeFunctionPointerVoid2_7 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_7<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 struct MakeFunctionPointerVoid7 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&);
@@ -833,10 +1661,38 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid7<Arg0, Arg1, Arg2, Arg3, Arg
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
@@ -863,6 +1719,35 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)>
@@ -892,6 +1777,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+struct MakeFunctionPointer2_8 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_8<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 struct MakeFunctionPointer8 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&);
@@ -902,13 +1797,39 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer8<Return, Arg0, Arg1, Arg2, Arg3,
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7) {
     IWriter* writer;
@@ -928,6 +1849,35 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)>
@@ -955,6 +1905,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+struct MakeFunctionPointerVoid2_8 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_8<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 struct MakeFunctionPointerVoid8 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&);
@@ -965,10 +1925,39 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid8<Arg0, Arg1, Arg2, Arg3, Arg
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+    assert(handler.argument(arg8));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
@@ -996,6 +1985,37 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+    typename std::remove_cv<typename std::remove_reference<Arg8>::type>::type arg8;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+    if (!handler.getArgument(arg8)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)>
@@ -1027,6 +2047,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+struct MakeFunctionPointer2_9 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_9<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 struct MakeFunctionPointer9 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&);
@@ -1037,13 +2067,40 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer9<Return, Arg0, Arg1, Arg2, Arg3,
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+    assert(handler.argument(arg8));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8) {
     IWriter* writer;
@@ -1064,6 +2121,37 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+    typename std::remove_cv<typename std::remove_reference<Arg8>::type>::type arg8;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+    if (!handler.getArgument(arg8)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)>
@@ -1093,6 +2181,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+struct MakeFunctionPointerVoid2_9 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_9<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 struct MakeFunctionPointerVoid9 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&);
@@ -1103,10 +2201,40 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid9<Arg0, Arg1, Arg2, Arg3, Arg
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8>;
 }
 
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, func>;
+}
+
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, func>;
+}
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+Return rpcCall(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8, Arg9 const& arg9) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+    assert(handler.argument(arg8));
+    assert(handler.argument(arg9));
+
+    assert(handler.invoke());
+
+    Return result;
+    assert(handler.end(result));
+    return result;
 }
 
 template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
@@ -1135,6 +2263,39 @@ Return rpcSerializedCall(
 
     endRPC();
     return result;
+}
+
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+    typename std::remove_cv<typename std::remove_reference<Arg8>::type>::type arg8;
+    typename std::remove_cv<typename std::remove_reference<Arg9>::type>::type arg9;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+    if (!handler.getArgument(arg8)) return false;
+    if (!handler.getArgument(arg9)) return false;
+
+    const Return result = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+
+    if (!handler.end(result)) return false;
+
+    return true;
 }
 
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, Return (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)>
@@ -1168,6 +2329,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+struct MakeFunctionPointer2_10 {
+    typedef Return (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&, Arg9 const&);
+};
+
+template <class Handler, const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointer2_10<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::type getRpcCall(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)) {
+    return &rpcCall<Handler, functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>;
+}
+
 template <typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 struct MakeFunctionPointer10 {
     typedef Return (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&, Arg9 const&);
@@ -1178,13 +2349,41 @@ RPC_CONSTEXPR_FUNC typename MakeFunctionPointer10<Return, Arg0, Arg1, Arg2, Arg3
     return &rpcSerializedCall<functionName, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>;
 }
 
+template <typename Function, Function func, class Handler, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, func>;
+}
+
 template <typename Function, Function func, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 RPC_CONSTEXPR_FUNC bool (*getRpcSerializedExecute(Return (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)))(
         IErrorHandler* err, IReader* reader, IWriter* writer) {
     return &rpcSerializedExecute<Return, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, func>;
 }
 
-template <const char* functionName, typename Return, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+void rpcCallVoid(
+        Handler& handler, Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8, Arg9 const& arg9) {
+
+    assert(handler.begin(functionName));
+
+    assert(handler.argument(arg0));
+    assert(handler.argument(arg1));
+    assert(handler.argument(arg2));
+    assert(handler.argument(arg3));
+    assert(handler.argument(arg4));
+    assert(handler.argument(arg5));
+    assert(handler.argument(arg6));
+    assert(handler.argument(arg7));
+    assert(handler.argument(arg8));
+    assert(handler.argument(arg9));
+
+    assert(handler.invoke());
+
+    assert(handler.end());
+}
+
+template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 void rpcSerializedCallVoid(
         Arg0 const& arg0, Arg1 const& arg1, Arg2 const& arg2, Arg3 const& arg3, Arg4 const& arg4, Arg5 const& arg5, Arg6 const& arg6, Arg7 const& arg7, Arg8 const& arg8, Arg9 const& arg9) {
     IWriter* writer;
@@ -1206,6 +2405,39 @@ void rpcSerializedCallVoid(
     assert(invokeRPC());
 
     endRPC();
+}
+
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)>
+bool rpcExecute(Handler& handler) {
+    typename std::remove_cv<typename std::remove_reference<Arg0>::type>::type arg0;
+    typename std::remove_cv<typename std::remove_reference<Arg1>::type>::type arg1;
+    typename std::remove_cv<typename std::remove_reference<Arg2>::type>::type arg2;
+    typename std::remove_cv<typename std::remove_reference<Arg3>::type>::type arg3;
+    typename std::remove_cv<typename std::remove_reference<Arg4>::type>::type arg4;
+    typename std::remove_cv<typename std::remove_reference<Arg5>::type>::type arg5;
+    typename std::remove_cv<typename std::remove_reference<Arg6>::type>::type arg6;
+    typename std::remove_cv<typename std::remove_reference<Arg7>::type>::type arg7;
+    typename std::remove_cv<typename std::remove_reference<Arg8>::type>::type arg8;
+    typename std::remove_cv<typename std::remove_reference<Arg9>::type>::type arg9;
+
+    assert(handler.begin());
+
+    if (!handler.getArgument(arg0)) return false;
+    if (!handler.getArgument(arg1)) return false;
+    if (!handler.getArgument(arg2)) return false;
+    if (!handler.getArgument(arg3)) return false;
+    if (!handler.getArgument(arg4)) return false;
+    if (!handler.getArgument(arg5)) return false;
+    if (!handler.getArgument(arg6)) return false;
+    if (!handler.getArgument(arg7)) return false;
+    if (!handler.getArgument(arg8)) return false;
+    if (!handler.getArgument(arg9)) return false;
+
+    function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+
+    if (!handler.end()) return false;
+
+    return true;
 }
 
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9, void (*function)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)>
@@ -1237,6 +2469,16 @@ bool rpcSerializedExecute(IErrorHandler* err, IReader* reader, IWriter* writer) 
     return true;
 }
 
+template <class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+struct MakeFunctionPointerVoid2_10 {
+    typedef void (*type)(Handler&, Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&, Arg9 const&);
+};
+
+template <class Handler, const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid2_10<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::type getRpcCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)) {
+    return &rpcCallVoid<Handler, functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>;
+}
+
 template <typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 struct MakeFunctionPointerVoid10 {
     typedef void (*type)(Arg0 const&, Arg1 const&, Arg2 const&, Arg3 const&, Arg4 const&, Arg5 const&, Arg6 const&, Arg7 const&, Arg8 const&, Arg9 const&);
@@ -1245,6 +2487,12 @@ struct MakeFunctionPointerVoid10 {
 template <const char* functionName, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
 RPC_CONSTEXPR_FUNC typename MakeFunctionPointerVoid10<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>::type getRpcSerializedCall(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)) {
     return &rpcSerializedCallVoid<functionName, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9>;
+}
+
+template <typename Function, Function func, class Handler, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
+RPC_CONSTEXPR_FUNC bool (*getRpcExecute(void (*functionNull)(Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9)))(
+        Handler& handler) {
+    return &rpcExecute<Handler, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, func>;
 }
 
 template <typename Function, Function func, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7, typename Arg8, typename Arg9>
