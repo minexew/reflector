@@ -196,7 +196,7 @@ struct ReflectedValue_t {
     template <typename T>
     ReflectedValue_t(T& value)
     {
-        refl = reflectionForType2<T>();
+        refl = reflectionForType(value);
         p_value = &value;
     }
 };
