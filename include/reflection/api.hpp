@@ -219,7 +219,7 @@ std::string reflectToString(const T inst[], uint32_t fieldMask = FIELD_STATE) {
 
 template <typename T>
 std::string reflectToString(const T& inst, uint32_t fieldMask = FIELD_STATE) {
-    ITypeReflection* refl = reflectionForType2<T>();
+    ITypeReflection* refl = reflectionForType(inst);
 
     char* buf = nullptr;
     size_t bufSize = 0;
