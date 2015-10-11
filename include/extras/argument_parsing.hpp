@@ -48,36 +48,68 @@ bool setDashArgument(Fields& fields, int argc, char* argv[], int& i, const char*
         const char* spec = field.params;
 
         if (spec[0] == '-' && spec[1] == argv[i][1]) {
-            if (field.template isType<bool>()) {
-                // -f
-                if (!field.setFromString("1"))
-                    return false;
+            // -option [value]
+            if (spec[2] != 0) {
+                if (strcmp(spec, argv[i]) != 0)
+                    continue;
 
-                argSpecified[j] = 1;
-                return true;
-            }
-            else if (argv[i][2] != 0) {
-                // -fValue
-                if (!field.setFromString(argv[i] + 2))
-                    return false;
+                if (field.template isType<bool>()) {
+                    // -option
+                    if (!field.setFromString("1"))
+                        return false;
 
-                argSpecified[j] = 1;
-                return true;
-            }
-            else {
-                // -f Value
-                ++i;
-
-                if (i >= argc) {
-                    fprintf(stderr, "%s: error: expected '%s <%s>'\n", programName, spec, field.name);
-                    return false;
+                    argSpecified[j] = 1;
+                    return true;
                 }
+                else {
+                    // -option Value
+                    ++i;
 
-                if (!field.setFromString(argv[i]))
-                    return false;
+                    if (i >= argc) {
+                        fprintf(stderr, "%s: error: expected '%s <%s>'\n", programName, spec, field.name);
+                        return false;
+                    }
 
-                argSpecified[j] = 1;
-                return true;
+                    if (!field.setFromString(argv[i]))
+                        return false;
+
+                    argSpecified[j] = 1;
+                    return true;
+                }
+            }
+            // -f / -fvalue / -f value
+            else {
+                if (field.template isType<bool>()) {
+                    // -f
+                    if (!field.setFromString("1"))
+                        return false;
+
+                    argSpecified[j] = 1;
+                    return true;
+                }
+                else if (argv[i][2] != 0) {
+                    // -fValue
+                    if (!field.setFromString(argv[i] + 2))
+                        return false;
+
+                    argSpecified[j] = 1;
+                    return true;
+                }
+                else {
+                    // -f Value
+                    ++i;
+
+                    if (i >= argc) {
+                        fprintf(stderr, "%s: error: expected '%s <%s>'\n", programName, spec, field.name);
+                        return false;
+                    }
+
+                    if (!field.setFromString(argv[i]))
+                        return false;
+
+                    argSpecified[j] = 1;
+                    return true;
+                }
             }
         }
     }
