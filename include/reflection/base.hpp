@@ -170,6 +170,7 @@ struct ReflectionForType2;
 template <class C>
 ITypeReflection* reflectionForType(C);
 
+// If you get an error about "use of undefined type ReflectionForType2<C>", you need to include <reflection/class.hpp>
 template <class C>
 ITypeReflection* reflectionForType2() { return ReflectionForType2<C>::reflectionForType2(); }
 
@@ -184,11 +185,6 @@ struct ReflectedValue_t {
     }
 
     ReflectedValue_t(const ReflectedValue_t& other)
-            : refl(other.refl), p_value(other.p_value)
-    {
-    }
-
-    ReflectedValue_t(ReflectedValue_t& other)
             : refl(other.refl), p_value(other.p_value)
     {
     }

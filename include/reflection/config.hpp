@@ -38,7 +38,7 @@ public:
 extern IConfigManager* cfgMgr;
 
 template <typename T>
-bool configure(T& inst) {
+bool configure(T& inst, IConfigManager* cfgMgr) {
     auto fields = reflectFields(inst);
 
     for (size_t i = 0; i < fields.count(); i++) {
@@ -64,5 +64,10 @@ bool configure(T& inst) {
     }
 
     return true;
+}
+
+template <typename T>
+bool configure(T& inst) {
+	return configure(inst, cfgMgr);
 }
 }
