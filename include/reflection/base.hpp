@@ -80,7 +80,7 @@ struct UUID_t {
     bool operator == (const UUID_t& other) const { return memcmp(uuid, other.uuid, sizeof(uuid)) == 0; }
 
     int toString(char buffer[37]) const {
-        return sprintf(buffer, "%08x-%04x-%04x-%04x-%04x%08x",
+        return snprintf(buffer, 37, "%08x-%04x-%04x-%04x-%04x%08x",
                 (unsigned int)(uuid[0]), (unsigned int)(uuid[1] >> 16), (unsigned int)(uuid[1] & 0xffff),
                 (unsigned int)(uuid[2] >> 16), (unsigned int)(uuid[2] & 0xffff), (unsigned int)(uuid[3]));
     }
