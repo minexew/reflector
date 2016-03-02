@@ -76,10 +76,6 @@ public:\
 };\
 
 #define PUBLISH_REFLECTION(reflection_, type_, template_) \
-template <template_> ITypeReflection* reflectionForType(type_) {\
-    static reflection_ reflection;\
-    return &reflection;\
-}\
 template <template_>\
 struct ReflectionForType2<type_> {\
     static ITypeReflection* reflectionForType2() {\
