@@ -123,8 +123,6 @@ namespace rpc {
     }
 }
 
-#include <reflection/default_error_handler.cpp>
-
 /*
 [RPC]   3 bytes of arguments to server
 [SERVER]        sayHelloTo(me)

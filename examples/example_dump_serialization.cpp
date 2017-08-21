@@ -120,5 +120,3 @@ int main(int argc, char** argv) {
 
     fclose(file);
 }
-
-#include <reflection/default_error_handler.cpp>

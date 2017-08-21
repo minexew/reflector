@@ -27,6 +27,7 @@
 #include <reflection/api.hpp>
 #include <reflection/magic.hpp>
 
+#include <reflection/basic_templates.hpp>
 #include <reflection/basic_types.hpp>
 
 #include <utility/file_reader_writer.hpp>
@@ -62,5 +63,3 @@ int main(int argc, char** argv) {
 
     puts(reflection::reflectToString(newStrings).c_str());
 }
-
-#include <reflection/default_error_handler.cpp>

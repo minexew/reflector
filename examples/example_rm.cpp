@@ -28,6 +28,8 @@
 #include <reflection/api.hpp>
 #include <reflection/magic.hpp>
 
+#include <reflection/basic_types.hpp>
+
 #include <cassert>
 #include <vector>
 

@@ -108,9 +108,6 @@ int main(int argc, char** argv) {
     mgr.renderAll();
 }
 
-#include <reflection/default_di_manager.cpp>
-#include <reflection/default_error_handler.cpp>
-
 /* OUTPUT:
 
 Rendering 'hero' using model 'warrior_standing.mdl'.

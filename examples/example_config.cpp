@@ -137,8 +137,6 @@ int main(int argc, char** argv) {
     puts(asString.c_str());
 }
 
-#include <reflection/default_error_handler.cpp>
-
 /* OUTPUT:
 
 Instance of class Torrent:

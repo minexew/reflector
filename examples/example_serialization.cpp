@@ -216,5 +216,3 @@ int main(int argc, char** argv) {
     dumpSchema<Actor>();
     dumpSchema<GameCharacter>();
 }
-
-#include <reflection/default_error_handler.cpp>

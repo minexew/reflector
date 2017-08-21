@@ -87,8 +87,6 @@ int main(int argc, char* argv[]) {
     return argument_parsing::multiCommandDispatch(argc - 1, argv + 1, "example_args", commands);
 }
 
-#include <reflection/default_error_handler.cpp>
-
 /*
 [examples]$ ./example_args
 usage: 'example_args <command> <arguments...>'
